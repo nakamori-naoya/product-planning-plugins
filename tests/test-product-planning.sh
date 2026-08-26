@@ -7,7 +7,8 @@ trap 'rm -rf "$TMP"' EXIT
 WRITER="$ROOT/shared/product/artifact.py"
 NORTH_ROOT="$ROOT/plugins/playbooks/product/product-north-star-planning"
 STRATEGY_ROOT="$ROOT/plugins/playbooks/product/product-strategy-planning"
-CONTENT_ROOT="$ROOT/plugins/skills/authoring/content-types"
+WRITE_DOC_ROOT=${WRITE_DOC_ROOT:-"$ROOT/../write-doc"}
+CONTENT_ROOT="$WRITE_DOC_ROOT/plugins/skills/authoring/content-types"
 PASS=0
 FAIL=0
 
@@ -157,12 +158,12 @@ echo "Scenario: 二つのplaybookは責務境界を変更できない"
 echo "  Given 正しいNorth Star策定とStrategy立案のplaybookがある"
 echo "  When requires、steps、needs、判定契約を一つずつ壊して検査する"
 "$NORTH_ROOT/scripts/validate-config.sh" <(yq -o=json '.' "$NORTH_ROOT/playbook.yml") && ok "north star playbook is valid" || ng "north star playbook validation"
-for expr in '.requires -= ["grill"]' '.requires -= ["intermediate-cleanup"]' '.steps[0].skill="define-product-north-star"' '.steps[3].playbook="grill-to-doc"' '.steps[4].skill="grill"' '.document_type="concept"' '.contract.forbidden_sections=[]'; do
+for expr in '.requires = [.requires[] | select(.plugin != "grill")]' '.requires = [.requires[] | select(.plugin != "intermediate-cleanup")]' '.steps[0].skill="define-product-north-star"' '.steps[3].playbook="grill-to-doc"' '.steps[4].skill="grill"' '.document_type="concept"' '.contract.forbidden_sections=[]'; do
   yq -o=json "$expr" "$NORTH_ROOT/playbook.yml" > "$TMP/north-mutated.json"
   expect_fail "$NORTH_ROOT/scripts/validate-config.sh" "$TMP/north-mutated.json"
 done
 "$STRATEGY_ROOT/scripts/validate-config.sh" <(yq -o=json '.' "$STRATEGY_ROOT/playbook.yml") && ok "strategy playbook is valid" || ng "strategy playbook validation"
-for expr in '.requires -= ["grill"]' '.requires -= ["intermediate-cleanup"]' '.steps[1].needs=[]' '.steps[5].needs=["product_strategy_path"]' '.steps[6].playbook="grill-to-doc"' '.steps[7].skill="grill"' '.document_type="concept"' '.contract.critique_verdicts=["pass","revise"]'; do
+for expr in '.requires = [.requires[] | select(.plugin != "grill")]' '.requires = [.requires[] | select(.plugin != "intermediate-cleanup")]' '.steps[1].needs=[]' '.steps[5].needs=["product_strategy_path"]' '.steps[6].playbook="grill-to-doc"' '.steps[7].skill="grill"' '.document_type="concept"' '.contract.critique_verdicts=["pass","revise"]'; do
   yq -o=json "$expr" "$STRATEGY_ROOT/playbook.yml" > "$TMP/strategy-mutated.json"
   expect_fail "$STRATEGY_ROOT/scripts/validate-config.sh" "$TMP/strategy-mutated.json"
 done
@@ -239,16 +240,15 @@ echo "  Then write-docで保存した後に中間生成物だけを片付ける"
 jq -e '.playbook.steps[-2].playbook=="write-doc" and .playbook.steps[-2].provides==["product_north_star_document_path"] and .playbook.steps[-1].skill=="remove-intermediate-artifacts" and .playbook.steps[-1].provides==["cleanup_report"]' "$TMP/north-resolved.json" >/dev/null && ok "North Star資料の保存後に中間生成物を片付ける" || ng "North Star資料の保存と後片付け工程"
 jq -e '.playbook.steps[-2].playbook=="write-doc" and .playbook.steps[-2].provides==["product_strategy_document_path"] and .playbook.steps[-1].skill=="remove-intermediate-artifacts" and .playbook.steps[-1].provides==["cleanup_report"]' "$TMP/strategy-resolved.json" >/dev/null && ok "Strategy資料の保存後に中間生成物を片付ける" || ng "Strategy資料の保存と後片付け工程"
 
-echo "Scenario: docsには二種類の電子チケット題材とHTML作例だけを残す"
-echo "  Given 業界課題とドメイン・データモデリングの題材を分け、Product North StarとStrategyのHTML作例を加えた"
+echo "Scenario: product repositoryには電子チケットの業界課題とHTML作例だけを置く"
+echo "  Given ドメイン・データモデリングの題材をBDD repositoryへ分離した"
 echo "  When docs配下のファイルを列挙する"
 find "$ROOT/docs" -type f | sed "s#^$ROOT/##" | sort > "$TMP/docs-files"
 printf '%s\n' \
-  "docs/exercises/domain-and-data-modeling/electronic-ticket-entry-exit.md" \
   "docs/exercises/product-planning/electronic-ticket-industry-challenges.md" \
   "docs/exercises/product-planning/electronic-ticket-product-planning.html" > "$TMP/docs-expected"
-echo "  Then 二つの題材とHTML作例だけが残り、旧domain成果物は残らない"
-cmp -s "$TMP/docs-expected" "$TMP/docs-files" && ok "docsには二種類の電子チケット題材とHTML作例だけがある" || ng "docsの整理結果"
+echo "  Then product planningの題材とHTML作例だけが残る"
+cmp -s "$TMP/docs-expected" "$TMP/docs-files" && ok "docsにはproduct planningの題材とHTML作例だけがある" || ng "docsの整理結果"
 if [ ! -d "$ROOT/domain" ] &&
    rg -n '紙のチケット' "$ROOT/docs/exercises/product-planning/electronic-ticket-industry-challenges.md" >/dev/null &&
    rg -n '不正転売' "$ROOT/docs/exercises/product-planning/electronic-ticket-industry-challenges.md" >/dev/null &&
