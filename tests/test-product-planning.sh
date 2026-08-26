@@ -7,7 +7,7 @@ trap 'rm -rf "$TMP"' EXIT
 WRITER="$ROOT/shared/product/artifact.py"
 NORTH_ROOT="$ROOT/plugins/playbooks/product/product-north-star-planning"
 STRATEGY_ROOT="$ROOT/plugins/playbooks/product/product-strategy-planning"
-WRITE_DOC_ROOT=${WRITE_DOC_ROOT:-"$ROOT/../write-doc"}
+WRITE_DOC_ROOT=${WRITE_DOC_ROOT:-"$ROOT/../write-doc-plugins"}
 CONTENT_ROOT="$WRITE_DOC_ROOT/plugins/skills/authoring/content-types"
 PASS=0
 FAIL=0
