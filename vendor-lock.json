@@ -1,0 +1,9 @@
+{"schema":2,"upstream":{"repository":"https://github.com/nakamori-naoya/harness-plugins","commit":"10852c3365df0c454160082b1458ca381e5d3dab","copied_at":"2026-08-26"},"plugins":[
+  {"name":"product-context","version":"0.2.0","path":"plugins/skills/product/product-context"},
+  {"name":"product-north-star","version":"0.2.1","path":"plugins/skills/product/product-north-star"},
+  {"name":"product-strategy","version":"0.3.1","path":"plugins/skills/product/product-strategy"},
+  {"name":"strategy-critique","version":"0.2.2","path":"plugins/skills/product/strategy-critique"},
+  {"name":"intermediate-cleanup","version":"0.1.0","path":"plugins/skills/authoring/intermediate-cleanup"},
+  {"name":"product-north-star-planning","version":"0.3.0","path":"plugins/playbooks/product/product-north-star-planning"},
+  {"name":"product-strategy-planning","version":"0.4.0","path":"plugins/playbooks/product/product-strategy-planning"}
+],"external_dependencies":[{"marketplace":"grill","plugin":"grill","version":"0.2.12"},{"marketplace":"write-doc","plugin":"write-doc","version":"0.6.0"}]}

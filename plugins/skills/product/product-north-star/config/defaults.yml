@@ -1,0 +1,9 @@
+version: 1
+output_dir: product/north-star
+artifact:
+  kind: product-north-star
+  required_sections: [対象, 望む状態, 約束する価値, プロダクトの役割, 判断原則, やらないこと, 根拠と仮説, 見直し条件, 未決]
+  required_nonempty_sections: [対象, 望む状態, 約束する価値, プロダクトの役割, 判断原則, やらないこと, 見直し条件]
+instructions:
+  direction:
+    directive: 機能・ロードマップ・KPIではなく、受益者へ実現する価値ある未来と選択基準を定める

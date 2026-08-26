@@ -1,0 +1,9 @@
+{
+  "name": "product-context",
+  "version": "0.2.0",
+  "description": "プロダクトの現在地を事実・仮説・未確認事項へ分け、課題候補を証拠台帳にする",
+  "author": {
+    "name": "NaoyaNakamori"
+  },
+  "skills": "./skills"
+}

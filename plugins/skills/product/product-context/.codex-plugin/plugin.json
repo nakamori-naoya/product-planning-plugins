@@ -1,0 +1,20 @@
+{
+  "name": "product-context",
+  "version": "0.2.0",
+  "description": "プロダクトの現在地を事実・仮説・未確認事項へ分け、課題候補を証拠台帳にする",
+  "skills": "./skills",
+  "author": {
+    "name": "NaoyaNakamori"
+  },
+  "interface": {
+    "displayName": "Product Context",
+    "shortDescription": "プロダクトの現在地を事実・仮説・未確認事項へ分け、課題候補を証拠台帳にする",
+    "longDescription": "プロダクトの現在地を事実・仮説・未確認事項へ分け、課題候補を証拠台帳にする",
+    "developerName": "NaoyaNakamori",
+    "category": "Productivity",
+    "capabilities": [
+      "Skills"
+    ],
+    "defaultPrompt": "product-contextを使ってこの作業を進めてください。"
+  }
+}

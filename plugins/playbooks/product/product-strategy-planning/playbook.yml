@@ -1,0 +1,82 @@
+# product-strategy-planning — 既存の北極星を保ち、現在地から戦略を立案して反証する。
+version: 2
+name: product-strategy-planning
+description: 検査済みProduct North Starと現在地から対話的にRumelt型Product Strategyを作り、独立反証して資料に保存する
+document_type: strategy
+output_format: markdown
+instructions:
+  execution:
+    directive: stepsを上から順に実行し、North Starの同一性を最後まで保ち、要修正判定なら検証済み戦略を返さない
+  interaction:
+    directive: 資料から分かることを聞かず、最重要課題、弱い環、近い目標、制約への態度、トレードオフ、非目標、資源集中をgrillで1問ずつ確かめる
+
+requires:
+  - {plugin: product-context, marketplace: product-planning, version: 0.2.0}
+  - {plugin: grill, marketplace: grill, version: 0.2.12}
+  - {plugin: product-strategy, marketplace: product-planning, version: 0.3.1}
+  - {plugin: strategy-critique, marketplace: product-planning, version: 0.2.2}
+  - {plugin: write-doc, marketplace: write-doc, version: 0.6.0}
+  - {plugin: intermediate-cleanup, marketplace: product-planning, version: 0.1.0}
+
+contract:
+  north_star_sections: [対象, 望む状態, 約束する価値, プロダクトの役割, 判断原則, やらないこと, 根拠と仮説, 見直し条件, 未決]
+  forbidden_north_star_sections: [診断, 基本方針, 一貫した行動, 資源配分, 行動計画, ロードマップ, 期限つき施策]
+  strategy_sections: [診断, 基本方針, 一貫した行動]
+  critique_verdicts: [合格, 要修正]
+  cleanup:
+    delete_after_document: [product_context_path, product_strategy_path, strategy_critique_path, verified_strategy_path]
+    preserve: [product_north_star_path, product_strategy_document_path]
+
+requirements:
+  interactive_with_grill: true
+  independent_critique: true
+  preserve_north_star: true
+  stop_on_required_revision: true
+
+steps:
+  - id: validate-north-star
+    script: scripts/validate-north-star.py
+    purpose: 既存のProduct North Star成果物を検査し、同一性を追跡する
+    provides: [product_north_star_path, product_north_star_sha256]
+
+  - id: map-context
+    skill: map-product-context
+    purpose: 現在地を事実・仮説・未確認事項、制約・能力・機会へ分け、現状が生む問題とNorth Starへ進む際の障壁を洗い出す
+    needs: [product_north_star_path]
+    provides: [product_context_path, context_unknowns, challenges]
+
+  - id: settle-strategy
+    skill: grill
+    purpose: North Starと現在地を踏まえ、最重要課題、弱い環、近い目標、制約への態度、トレードオフ、非目標、資源集中を一問ずつ確かめる
+    needs: [product_north_star_path, product_context_path, context_unknowns, challenges]
+    provides: [decisions, unresolved, grounded_strategy]
+
+  - id: form-strategy
+    skill: form-product-strategy
+    purpose: 課題候補から最重要課題を選び、現在地とNorth Starを診断、基本方針、一貫した行動へ結ぶ
+    needs: [product_north_star_path, product_context_path, challenges, decisions, unresolved, grounded_strategy]
+    provides: [product_strategy_path]
+
+  - id: critique
+    skill: challenge-strategy
+    purpose: 可能なら作成時と別の文脈で、戦略の核、根拠、制約、弱い環、近い目標、相互補強を反証する
+    needs: [product_north_star_path, product_context_path, product_strategy_path, decisions, unresolved]
+    provides: [strategy_critique_path, critique_verdict]
+
+  - id: verify
+    script: scripts/verify.py
+    purpose: North Starが不変で反証結果が合格のときだけ検証済み戦略を返す
+    needs: [product_north_star_path, product_north_star_sha256, product_strategy_path, strategy_critique_path, critique_verdict]
+    provides: [verified_strategy_path]
+
+  - id: document
+    playbook: write-doc
+    purpose: 検証済み戦略を専用の型で読み手向け資料にし、Markdownで保存する
+    needs: [verified_strategy_path, product_north_star_path, product_context_path, strategy_critique_path]
+    provides: [product_strategy_document_path]
+
+  - id: cleanup
+    skill: remove-intermediate-artifacts
+    purpose: 最終資料の保存を確認した後、contract.cleanupで削除候補にした現在地、戦略候補、批評、検証用成果物だけを削除し、入力したNorth Starと最終戦略資料を保持する
+    needs: [product_context_path, product_strategy_path, strategy_critique_path, verified_strategy_path, product_north_star_path, product_strategy_document_path]
+    provides: [cleanup_report]

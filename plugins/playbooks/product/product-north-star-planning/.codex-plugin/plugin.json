@@ -1,0 +1,20 @@
+{
+  "name": "product-north-star-planning",
+  "version": "0.3.0",
+  "description": "対話で価値判断を確かめ、戦略へ越境しないProduct North Star資料を保存する",
+  "skills": "./skills",
+  "author": {
+    "name": "NaoyaNakamori"
+  },
+  "interface": {
+    "displayName": "Product North Star Planning",
+    "shortDescription": "対話で価値判断を確かめ、戦略へ越境しないProduct North Star資料を保存する",
+    "longDescription": "対話で価値判断を確かめ、戦略へ越境しないProduct North Star資料を保存する",
+    "developerName": "NaoyaNakamori",
+    "category": "Productivity",
+    "capabilities": [
+      "Skills"
+    ],
+    "defaultPrompt": "product-north-star-planningを使ってこの作業を進めてください。"
+  }
+}

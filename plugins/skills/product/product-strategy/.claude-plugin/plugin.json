@@ -1,0 +1,9 @@
+{
+  "name": "product-strategy",
+  "version": "0.3.1",
+  "description": "現在地とNorth StarからRumeltの診断・基本方針・一貫した行動で戦略を作る",
+  "author": {
+    "name": "NaoyaNakamori"
+  },
+  "skills": "./skills"
+}

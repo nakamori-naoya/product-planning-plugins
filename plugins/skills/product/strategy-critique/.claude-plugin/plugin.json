@@ -1,0 +1,9 @@
+{
+  "name": "strategy-critique",
+  "version": "0.2.2",
+  "description": "プロダクト戦略を編集せず反証し合格または要修正で判定する",
+  "author": {
+    "name": "NaoyaNakamori"
+  },
+  "skills": "./skills"
+}

@@ -1,0 +1,931 @@
+<!doctype html>
+<html lang="ja" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="電子チケットを題材にしたProduct North StarとProduct Strategyの作例">
+  <title>Electronic Ticket — Product North Star &amp; Strategy</title>
+  <style>
+    :root {
+      --ink: #e8eef7;
+      --muted: #a9b9cf;
+      --paper: #060c17;
+      --surface: #0d1828;
+      --surface-2: #1d2e48;
+      --line: #5b7aa6;
+      --night: #071a20;
+      --teal: #62c9b2;
+      --teal-dark: #0c4e4a;
+      --mint: #a8e6d4;
+      --amber: #e89a2d;
+      --amber-soft: #2b2110;
+      --coral: #ff8d77;
+      --blue: #82c3ff;
+      --shadow: 0 18px 48px rgba(0, 0, 0, .28);
+      --radius-lg: 26px;
+      --radius-md: 16px;
+      --content: 1160px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; overflow-x: hidden; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 8% 2%, rgba(98, 201, 178, .12), transparent 24rem),
+        var(--paper);
+      font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic UI", "Yu Gothic", sans-serif;
+      font-size: 16px;
+      line-height: 1.8;
+      letter-spacing: .015em;
+      overflow-x: hidden;
+    }
+
+    a { color: inherit; }
+    button { font: inherit; }
+    strong { font-weight: 750; }
+    .wrap { width: min(calc(100% - 40px), var(--content)); margin-inline: auto; }
+
+    .skip-link {
+      position: fixed;
+      left: 12px;
+      top: -60px;
+      z-index: 99;
+      padding: 10px 14px;
+      color: white;
+      background: var(--night);
+      border-radius: 10px;
+      transition: top .2s ease;
+    }
+    .skip-link:focus { top: 12px; }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      color: #fff;
+      background: rgba(16, 41, 38, .94);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid rgba(255, 255, 255, .12);
+    }
+    .topbar-inner {
+      min-height: 68px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      text-decoration: none;
+      font-weight: 750;
+      letter-spacing: .04em;
+      white-space: nowrap;
+    }
+    .brand-mark {
+      width: 32px;
+      height: 32px;
+      display: grid;
+      place-items: center;
+      color: var(--night);
+      background: var(--mint);
+      border-radius: 50% 50% 50% 12%;
+      transform: rotate(-8deg);
+      font-size: 18px;
+    }
+    nav { display: flex; align-items: center; gap: 4px; }
+    nav a {
+      padding: 8px 11px;
+      color: rgba(255,255,255,.72);
+      border-radius: 999px;
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 700;
+      transition: .18s ease;
+    }
+    nav a:hover,
+    nav a.active { color: #fff; background: rgba(255,255,255,.12); }
+    .nav-toggle {
+      display: none;
+      color: #fff;
+      background: transparent;
+      border: 1px solid rgba(255,255,255,.28);
+      border-radius: 10px;
+      padding: 7px 10px;
+    }
+
+    .hero {
+      position: relative;
+      overflow: hidden;
+      color: #fff;
+      background: var(--night);
+      padding: 92px 0 78px;
+    }
+    .hero::before,
+    .hero::after {
+      content: "";
+      position: absolute;
+      border-radius: 50%;
+      pointer-events: none;
+    }
+    .hero::before {
+      width: 560px;
+      height: 560px;
+      right: -180px;
+      top: -260px;
+      border: 1px solid rgba(168, 230, 212, .32);
+      box-shadow: 0 0 0 60px rgba(168, 230, 212, .03), 0 0 0 120px rgba(168, 230, 212, .025);
+    }
+    .hero::after {
+      width: 240px;
+      height: 240px;
+      right: 12%;
+      bottom: -160px;
+      background: rgba(232, 154, 45, .17);
+      filter: blur(2px);
+    }
+    .hero-grid {
+      position: relative;
+      display: grid;
+      grid-template-columns: minmax(0, 1.45fr) minmax(260px, .55fr);
+      gap: 72px;
+      align-items: end;
+    }
+    .hero-grid > * { min-width: 0; }
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      margin: 0 0 22px;
+      color: var(--mint);
+      text-transform: uppercase;
+      letter-spacing: .16em;
+      font-size: 12px;
+      font-weight: 800;
+    }
+    .eyebrow::before { content: ""; width: 28px; height: 2px; background: currentColor; }
+    h1, h2, h3, h4 { line-height: 1.3; letter-spacing: -.02em; }
+    h1 {
+      margin: 0;
+      max-width: 850px;
+      font-size: clamp(42px, 6.2vw, 78px);
+      font-weight: 760;
+    }
+    .hero-lede {
+      margin: 28px 0 0;
+      max-width: 780px;
+      color: rgba(255,255,255,.75);
+      font-size: clamp(17px, 2vw, 21px);
+    }
+    .hero-meta {
+      min-width: 0;
+      width: 100%;
+      padding: 24px;
+      border: 1px solid rgba(255,255,255,.16);
+      background: rgba(255,255,255,.06);
+      border-radius: var(--radius-md);
+    }
+    .meta-row { display: grid; grid-template-columns: minmax(0, .7fr) minmax(0, 1.3fr); gap: 16px; padding: 9px 0; border-bottom: 1px solid rgba(255,255,255,.1); }
+    .meta-row:last-child { border-bottom: 0; }
+    .meta-row span { color: rgba(255,255,255,.55); font-size: 12px; }
+    .meta-row strong { text-align: right; font-size: 13px; }
+
+    .notice {
+      margin: -28px auto 0;
+      position: relative;
+      z-index: 3;
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 14px;
+      align-items: start;
+      padding: 20px 24px;
+      color: var(--ink);
+      background: #2b2110;
+      border: 1px solid #6c5323;
+      border-radius: 14px;
+      box-shadow: var(--shadow);
+      font-size: 14px;
+    }
+    .notice-icon { font-size: 21px; line-height: 1.3; }
+    .notice p { margin: 0; }
+
+    main { padding-bottom: 110px; }
+    section.block { padding: 105px 0 0; scroll-margin-top: 70px; }
+    .section-head {
+      display: grid;
+      grid-template-columns: 140px minmax(0, 1fr);
+      gap: 34px;
+      align-items: start;
+      margin-bottom: 42px;
+    }
+    .section-number {
+      color: var(--teal);
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-weight: 800;
+      font-size: 13px;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      padding-top: 10px;
+    }
+    .section-head h2 { margin: 0; font-size: clamp(34px, 4vw, 54px); }
+    .section-head p { margin: 12px 0 0; max-width: 770px; color: var(--muted); font-size: 18px; }
+
+    .north-star-statement {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr);
+      gap: 24px;
+      align-items: center;
+      padding: clamp(28px, 5vw, 54px);
+      color: #fff;
+      background: linear-gradient(135deg, var(--teal-dark), #087d6a);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow);
+    }
+    .star-icon { color: var(--mint); font-size: clamp(48px, 7vw, 82px); line-height: 1; }
+    .north-star-statement small { display: block; color: var(--mint); font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
+    .north-star-statement p { margin: 8px 0 0; font-size: clamp(22px, 3vw, 34px); line-height: 1.55; font-weight: 700; }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-top: 22px;
+    }
+    .stat {
+      min-height: 180px;
+      padding: 26px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
+    }
+    .stat-value { display: block; color: var(--teal); font-size: 42px; line-height: 1.15; font-weight: 800; letter-spacing: -.04em; }
+    .stat-label { display: block; margin-top: 12px; font-weight: 700; }
+    .stat-source { display: block; margin-top: 8px; color: var(--muted); font-size: 12px; line-height: 1.55; }
+
+    .card-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; }
+    .card {
+      padding: 30px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
+    }
+    .card-kicker { margin: 0 0 8px; color: var(--teal); font-size: 12px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+    .card h3 { margin: 0 0 12px; font-size: 23px; }
+    .card p { margin: 0; color: var(--muted); }
+
+    .subsection { margin-top: 68px; }
+    .subsection-title { display: flex; align-items: center; gap: 14px; margin-bottom: 24px; }
+    .subsection-title::before { content: ""; width: 42px; height: 5px; background: var(--amber); border-radius: 999px; }
+    .subsection-title h3 { margin: 0; font-size: 29px; }
+
+    .value-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+    .value-card { padding: 22px 20px; background: var(--surface); border-top: 4px solid var(--teal); border-radius: 8px 8px 14px 14px; }
+    .value-card h4 { margin: 0 0 8px; font-size: 17px; }
+    .value-card p { margin: 0; color: var(--muted); font-size: 14px; }
+
+    .flow {
+      display: grid;
+      grid-template-columns: 1fr 44px 1.1fr 44px 1fr;
+      align-items: stretch;
+      gap: 10px;
+      margin-top: 26px;
+    }
+    .flow-node {
+      padding: 24px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
+    }
+    .flow-node.center { color: #fff; background: var(--teal-dark); border-color: var(--teal-dark); }
+    .flow-node small { display: block; margin-bottom: 6px; color: var(--teal); font-weight: 800; }
+    .flow-node.center small { color: var(--mint); }
+    .flow-node p { margin: 0; font-weight: 700; }
+    .arrow { display: grid; place-items: center; color: var(--teal); font-size: 30px; font-weight: 300; }
+
+    .principles { display: grid; gap: 14px; }
+    .principle {
+      display: grid;
+      grid-template-columns: minmax(180px, .62fr) 1fr 1fr;
+      overflow: hidden;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
+    }
+    .principle > div { padding: 24px; }
+    .principle-label { color: #fff; background: var(--night); }
+    .principle-label small { color: var(--mint); }
+    .principle h4 { margin: 6px 0 0; font-size: 18px; }
+    .principle p { margin: 6px 0 0; color: var(--muted); font-size: 14px; }
+    .principle .choose { border-right: 1px solid var(--line); }
+    .choose small { color: var(--teal); font-weight: 800; }
+    .avoid small { color: var(--coral); font-weight: 800; }
+
+    .not-doing { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+    .not-item { position: relative; padding: 24px 24px 24px 58px; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; }
+    .not-item::before { content: "×"; position: absolute; left: 22px; top: 19px; color: var(--coral); font-size: 27px; font-weight: 400; }
+    .not-item h4 { margin: 0 0 5px; }
+    .not-item p { margin: 0; color: var(--muted); font-size: 14px; }
+
+    .evidence-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    .evidence-column { padding: 30px; border-radius: var(--radius-md); }
+    .evidence-column.fact { color: var(--ink); background: #102b2b; border: 1px solid #2d5b56; }
+    .evidence-column.hypothesis { color: var(--ink); background: #2b2110; border: 1px solid #6c5323; }
+    .evidence-column h3 { margin: 0 0 20px; }
+    .evidence-list { display: grid; gap: 18px; }
+    .evidence-item h4 { margin: 0 0 4px; font-size: 16px; }
+    .evidence-item p { margin: 0; color: var(--muted); font-size: 14px; }
+    .evidence-item .proof { display: block; margin-top: 7px; color: var(--muted); font-size: 11px; line-height: 1.5; }
+
+    .review-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    .review-card { padding: 24px; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; }
+    .review-card h4 { margin: 0 0 8px; }
+    .review-card p { margin: 0; color: var(--muted); font-size: 14px; }
+
+    .strategy-kernel {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      background: var(--surface);
+      box-shadow: var(--shadow);
+    }
+    .kernel-part { padding: 30px; border-right: 1px solid var(--line); }
+    .kernel-part:last-child { border-right: 0; }
+    .kernel-part span { display: inline-grid; place-items: center; width: 34px; height: 34px; color: var(--night); background: var(--teal); border-radius: 50%; font-weight: 800; }
+    .kernel-part h3 { margin: 14px 0 8px; }
+    .kernel-part p { margin: 0; color: var(--muted); font-size: 14px; }
+
+    .diagnosis {
+      padding: clamp(28px, 5vw, 50px);
+      color: #fff;
+      background: var(--night);
+      border-radius: var(--radius-lg);
+    }
+    .diagnosis h3 { margin: 0 0 18px; color: var(--mint); font-size: 28px; }
+    .diagnosis .focus { margin: 0; font-size: clamp(21px, 3vw, 32px); font-weight: 750; line-height: 1.55; }
+    .diagnosis .reason { margin: 22px 0 0; color: rgba(255,255,255,.7); }
+    .weak-link {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-top: 30px;
+    }
+    .link {
+      position: relative;
+      padding: 14px;
+      text-align: center;
+      color: rgba(255,255,255,.62);
+      border: 1px solid rgba(255,255,255,.18);
+      border-radius: 999px;
+      font-size: 13px;
+    }
+    .link.weak { color: var(--night); background: var(--amber); border-color: var(--amber); font-weight: 800; }
+    .link:not(:last-child)::after { content: "›"; position: absolute; right: -8px; top: 50%; transform: translate(50%, -50%); color: var(--mint); z-index: 2; font-size: 22px; }
+
+    .policy {
+      display: grid;
+      grid-template-columns: 1.2fr .8fr;
+      gap: 18px;
+    }
+    .policy-main { padding: 34px; color: #fff; background: var(--teal-dark); border-radius: var(--radius-md); }
+    .policy-main h3 { margin: 0 0 14px; color: var(--mint); }
+    .policy-main p { margin: 0; font-size: 18px; }
+    .policy-side { display: grid; gap: 12px; }
+    .choice-box { padding: 22px; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; }
+    .choice-box h4 { margin: 0 0 6px; color: var(--teal); }
+    .choice-box.no h4 { color: var(--coral); }
+    .choice-box p { margin: 0; color: var(--muted); font-size: 14px; }
+    .policy-detail { margin-top: 26px; }
+    .policy-detail h4 { margin: 0 0 12px; font-size: 22px; }
+    .policy-review { margin-top: 16px; padding: 20px 22px; color: var(--ink); background: #1d2e48; border-left: 4px solid var(--amber); border-radius: 0 12px 12px 0; }
+    .policy-review strong { display: block; margin-bottom: 4px; color: var(--mint); }
+    .policy-review p { margin: 0; color: var(--muted); font-size: 14px; }
+
+    .actions { display: grid; gap: 12px; counter-reset: action; }
+    .action {
+      counter-increment: action;
+      position: relative;
+      display: grid;
+      grid-template-columns: 72px 1fr minmax(190px, .4fr);
+      gap: 22px;
+      align-items: start;
+      padding: 28px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
+    }
+    .action::before {
+      content: counter(action, decimal-leading-zero);
+      display: grid;
+      place-items: center;
+      width: 56px;
+      height: 56px;
+      color: var(--night);
+      background: var(--teal);
+      border-radius: 50%;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-weight: 800;
+    }
+    .action:not(:last-child)::after { content: "↓"; position: absolute; left: 47px; bottom: -23px; z-index: 2; color: var(--teal); font-size: 25px; }
+    .action h3 { margin: 2px 0 8px; font-size: 21px; }
+    .action p { margin: 0; color: var(--muted); font-size: 14px; }
+    .action-outcome { color: var(--ink); padding: 14px 16px; background: #102b2b; border-radius: 10px; }
+    .action-outcome strong { display: block; color: var(--teal); font-size: 12px; letter-spacing: .06em; }
+    .action-outcome span { display: block; margin-top: 4px; font-size: 13px; }
+
+    .proximate {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 20px;
+      align-items: center;
+      margin-top: 18px;
+      padding: 28px;
+      color: var(--ink);
+      background: #2b2110;
+      border: 1px solid #6c5323;
+      border-radius: var(--radius-md);
+    }
+    .proximate .flag { font-size: 38px; }
+    .proximate h3 { margin: 0 0 6px; }
+    .proximate p { margin: 0; color: var(--muted); }
+
+    .resource-table { width: 100%; border-collapse: collapse; overflow: hidden; background: var(--surface); border-radius: 14px; }
+    .resource-table th, .resource-table td { padding: 16px 18px; text-align: left; border-bottom: 1px solid var(--line); }
+    .resource-table th { color: var(--mint); background: #122b3e; font-size: 13px; }
+    .resource-table tr:last-child td { border-bottom: 0; }
+    .resource-table td { font-size: 14px; }
+
+    .verdict {
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      overflow: hidden;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow);
+    }
+    .verdict-mark { display: grid; place-items: center; padding: 34px; color: #fff; background: var(--teal-dark); text-align: center; }
+    .verdict-mark small { display: block; color: var(--mint); font-weight: 800; letter-spacing: .12em; }
+    .verdict-mark strong { display: block; margin-top: 6px; font-size: 42px; }
+    .verdict-body { padding: 34px; }
+    .verdict-body h3 { margin: 0 0 10px; }
+    .verdict-body p { margin: 0; color: var(--muted); }
+    .critique-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 18px; }
+    .critique-item { padding: 20px; background: var(--surface); border: 1px solid var(--line); border-radius: 13px; }
+    .critique-item h4 { margin: 0 0 6px; font-size: 16px; }
+    .critique-item p { margin: 0; color: var(--muted); font-size: 13px; }
+
+    .source-box { padding: 30px; background: var(--surface-2); border-radius: var(--radius-md); }
+    .source-box p { margin: 0 0 12px; }
+    .source-box p:last-child { margin-bottom: 0; }
+    .source-box a { color: var(--teal); font-weight: 750; text-underline-offset: 3px; }
+
+    footer { padding: 42px 0; color: rgba(255,255,255,.66); background: var(--night); font-size: 13px; }
+    .footer-inner { display: flex; justify-content: space-between; gap: 24px; }
+
+    @media (max-width: 900px) {
+      .hero-grid, .section-head, .policy { grid-template-columns: 1fr; }
+      .hero-grid { gap: 36px; }
+      .section-head { gap: 6px; }
+      .stats, .strategy-kernel, .review-grid, .critique-grid { grid-template-columns: 1fr; }
+      .value-grid { grid-template-columns: repeat(2, 1fr); }
+      .principle { grid-template-columns: 1fr 1fr; }
+      .principle-label { grid-column: 1 / -1; }
+      .kernel-part { border-right: 0; border-bottom: 1px solid var(--line); }
+      .kernel-part:last-child { border-bottom: 0; }
+      .action { grid-template-columns: 62px 1fr; }
+      .action-outcome { grid-column: 2; }
+      .verdict { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 720px) {
+      .wrap { width: min(calc(100% - 26px), var(--content)); }
+      .topbar-inner { min-height: 60px; }
+      .topbar-inner { gap: 10px; }
+      .brand { min-width: 0; font-size: 14px; }
+      .nav-toggle { display: block; }
+      nav {
+        position: absolute;
+        left: 13px;
+        right: 13px;
+        top: 64px;
+        display: none;
+        flex-direction: column;
+        align-items: stretch;
+        padding: 10px;
+        background: var(--night);
+        border: 1px solid rgba(255,255,255,.16);
+        border-radius: 12px;
+        box-shadow: var(--shadow);
+      }
+      nav.open { display: flex; }
+      nav a { padding: 11px 12px; }
+      .hero { padding: 68px 0 58px; }
+      .eyebrow { max-width: 100%; flex-wrap: wrap; font-size: 10px; letter-spacing: .11em; }
+      .hero-meta { max-width: none; }
+      .meta-row { gap: 10px; }
+      .meta-row strong { overflow-wrap: anywhere; }
+      .notice { margin-top: -18px; }
+      section.block { padding-top: 76px; }
+      .north-star-statement { grid-template-columns: 1fr; }
+      .stats, .card-grid, .value-grid, .not-doing, .evidence-grid { grid-template-columns: 1fr; }
+      .flow { grid-template-columns: 1fr; }
+      .arrow { transform: rotate(90deg); height: 30px; }
+      .principle { grid-template-columns: 1fr; }
+      .principle-label { grid-column: auto; }
+      .principle .choose { border-right: 0; border-bottom: 1px solid var(--line); }
+      .weak-link { grid-template-columns: 1fr; }
+      .link:not(:last-child)::after { content: "↓"; right: 50%; top: auto; bottom: -20px; transform: translateX(50%); }
+      .action { grid-template-columns: 1fr; }
+      .action-outcome { grid-column: auto; }
+      .action:not(:last-child)::after { left: 50%; transform: translateX(-50%); }
+      .resource-table { display: block; overflow-x: auto; }
+      .footer-inner { flex-direction: column; }
+    }
+
+    @media print {
+      :root {
+        --ink: #17201f;
+        --muted: #5d6966;
+        --paper: #fff;
+        --surface: #fff;
+        --surface-2: #eef2f5;
+        --line: #b8c2cc;
+      }
+      body { font-size: 11pt; background: #fff; }
+      .topbar, .nav-toggle, .skip-link { display: none !important; }
+      .hero { padding: 35px 0; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+      .hero-grid { grid-template-columns: 1fr; gap: 18px; }
+      .hero-meta { display: none; }
+      .notice { box-shadow: none; }
+      section.block { padding-top: 42px; }
+      .card, .stat, .principle, .action, .review-card, .critique-item, .verdict, .north-star-statement, .diagnosis { break-inside: avoid; box-shadow: none; }
+      a { text-decoration: none; }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#main">本文へ移動</a>
+
+  <header class="topbar">
+    <div class="wrap topbar-inner">
+      <a class="brand" href="#top" aria-label="ページ先頭へ">
+        <span class="brand-mark" aria-hidden="true">✦</span>
+        <span>RIGHT TO ARRIVE</span>
+      </a>
+      <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="page-nav">目次</button>
+      <nav id="page-nav" aria-label="ページ内目次">
+        <a href="#overview">概要</a>
+        <a href="#north-star">North Star</a>
+        <a href="#evidence">根拠と仮説</a>
+        <a href="#strategy">Strategy</a>
+        <a href="#critique">反証</a>
+      </nav>
+    </div>
+  </header>
+
+  <div id="top" class="hero">
+    <div class="wrap hero-grid">
+      <div>
+        <p class="eyebrow">Product North Star × Product Strategy</p>
+        <h1>入場権を、<br>安心してつなぐ。</h1>
+        <p class="hero-lede">紙を画面へ置き換えるのではなく、正当に取得した権利が購入・譲渡・入場・救済まで途切れない体験を設計する。</p>
+      </div>
+      <aside class="hero-meta" aria-label="資料メタデータ">
+        <div class="meta-row"><span>題材</span><strong>電子チケット</strong></div>
+        <div class="meta-row"><span>成果物</span><strong>North Star + Strategy</strong></div>
+        <div class="meta-row"><span>観測時点</span><strong>2026-08-26</strong></div>
+        <div class="meta-row"><span>状態</span><strong>generated / reviewed</strong></div>
+      </aside>
+    </div>
+  </div>
+
+  <div class="wrap notice" role="note">
+    <div class="notice-icon" aria-hidden="true">◎</div>
+    <p><strong>架空の演習資料です。</strong> 以下の出来事・数値・調査は実在の企業や業界統計を示しません。今回は利用者指定によりGrill（対話による価値判断の確定）を省き、題材資料から読み取れる仮説を明示したうえで立案しています。</p>
+  </div>
+
+  <main id="main">
+    <section id="overview" class="block wrap" data-nav="overview">
+      <div class="section-head">
+        <div class="section-number">00 / Context</div>
+        <div>
+          <h2>媒体ではなく、権利の連続性を見る。</h2>
+          <p>来場者・主催者・会場が異なる記録を根拠にしているため、販売時の食い違いが入場口で一度に表面化する。電子化の中心課題は、現在の正当な保有者と利用可否を一貫して扱えるかにある。</p>
+        </div>
+      </div>
+
+      <div class="stats" aria-label="題材資料の観測事実">
+        <article class="stat">
+          <span class="stat-value">38<small>/120</small></span>
+          <span class="stat-label">配送遅延・紛失・持参忘れの相談</span>
+          <span class="stat-source">作例用の仮想相談記録<br>観測時点 2026-07-31</span>
+        </article>
+        <article class="stat">
+          <span class="stat-value">17<small>/120</small></span>
+          <span class="stat-label">非正規取引後の利用不能相談</span>
+          <span class="stat-source">作例用の仮想相談記録<br>観測時点 2026-07-31</span>
+        </article>
+        <article class="stat">
+          <span class="stat-value">2<small>会場</small></span>
+          <span class="stat-label">入口間で同一表示を即時照合できず</span>
+          <span class="stat-source">作例用の仮想入場演習記録<br>観測時点 2026-07-20</span>
+        </article>
+      </div>
+    </section>
+
+    <section id="north-star" class="block wrap" data-nav="north-star">
+      <div class="section-head">
+        <div class="section-number">01 / North Star</div>
+        <div>
+          <h2>価値ある未来を固定する。</h2>
+          <p>機能・ロードマップ・単一KPIではなく、環境や戦略が変わってもプロダクト判断を同じ方向へ揃える長期の基準。</p>
+        </div>
+      </div>
+
+      <div class="north-star-statement">
+        <div class="star-icon" aria-hidden="true">✦</div>
+        <div>
+          <small>North Star Statement</small>
+          <p>来場する権利を持つ人が、紙や端末の事情、不正な取引や複製に振り回されず、その権利を安心して引き継ぎ、行使できる状態をつくる。</p>
+        </div>
+      </div>
+
+      <div class="subsection">
+        <div class="card-grid">
+          <article class="card">
+            <p class="card-kicker">対象</p>
+            <h3>対象 — 正規の入場権を持つ来場者</h3>
+            <p>自分で購入した人だけでなく、正規の譲渡・二次流通で権利を受け取った人、同行者として権利を受け取る人を含む。端末の有無や操作能力で対象を狭めない。</p>
+          </article>
+          <article class="card">
+            <p class="card-kicker">望む状態</p>
+            <h3>望む状態 — 「本当に入れるか」を心配しなくてよい</h3>
+            <p>購入・譲渡・失効・利用の変化後も、関係者が現在有効な入場権を共通の根拠から確かめられる。判断不能時にも、理由をたどって救済を求められる。</p>
+          </article>
+        </div>
+      </div>
+
+      <div class="subsection">
+        <div class="subsection-title"><h3>約束する価値</h3></div>
+        <div class="value-grid">
+          <article class="value-card"><h4>権利が途切れない安心</h4><p>正当に取得した権利が購入から入場まで認められる。</p></article>
+          <article class="value-card"><h4>媒体に縛られない自由</h4><p>紙や特定端末ではなく、権利を基準に来場できる。</p></article>
+          <article class="value-card"><h4>判断の予測可能性</h4><p>必要な確認と、例外時の救済経路が事前に分かる。</p></article>
+          <article class="value-card"><h4>正当な来場者への公平</h4><p>不正な複製や転売が入場機会を奪いにくい。</p></article>
+        </div>
+        <p style="margin:18px 0 0;color:var(--muted);font-size:14px;">価値は、正当な来場者の入場成功、正規譲渡後の利用成功、不正・無効権利の識別、拒否理由と救済の提示を組み合わせて観測する。通過人数や処理速度だけをNorth Star Metricとしない。</p>
+      </div>
+
+      <div class="subsection">
+        <div class="subsection-title"><h3>プロダクトの役割</h3></div>
+        <p>媒体の種類にかかわらず、現在誰がどの範囲へ入場できるか、その所有と利用済み状態の変化、入口での判断根拠を一貫して扱う。販売条件・転売規制・会場保安そのものは決めず、それらを権利判定と説明へ矛盾なく反映する。</p>
+        <div class="flow" aria-label="損なわれた価値から望む状態への流れ">
+          <div class="flow-node"><small>損なわれた価値</small><p>紙・表示・アカウントの食い違いで、正当な人が権利を証明できない</p></div>
+          <div class="arrow" aria-hidden="true">→</div>
+          <div class="flow-node center"><small>プロダクト固有の役割</small><p>入場権の取得・移転・利用・救済を一つの根拠でつなぐ</p></div>
+          <div class="arrow" aria-hidden="true">→</div>
+          <div class="flow-node"><small>望む状態</small><p>正当な人が、媒体に左右されず安心して権利を行使できる</p></div>
+        </div>
+      </div>
+
+      <div class="subsection">
+        <div class="subsection-title"><h3>判断原則</h3></div>
+        <div class="principles">
+          <article class="principle">
+            <div class="principle-label"><small>01</small><h4>締め出しより救済可能性</h4></div>
+            <div class="choose"><small>優先する</small><p>正当な権利を、たどれる根拠によって回復できること。</p></div>
+            <div class="avoid"><small>選ばない</small><p>判断できない来場者を一律拒否すれば安全だとみなすこと。</p></div>
+          </article>
+          <article class="principle">
+            <div class="principle-label"><small>02</small><h4>速さだけでなく確かさ</h4></div>
+            <div class="choose"><small>優先する</small><p>通常列を滞留させず、後から説明できる判断を残すこと。</p></div>
+            <div class="avoid"><small>選ばない</small><p>速度のために、複製や移転を見分ける根拠を失うこと。</p></div>
+          </article>
+          <article class="principle">
+            <div class="principle-label"><small>03</small><h4>必要最小限の本人情報</h4></div>
+            <div class="choose"><small>優先する</small><p>権利の有効性と正当な保有者の判断に必要な情報だけを扱うこと。</p></div>
+            <div class="avoid"><small>選ばない</small><p>不正対策を理由に、全来場者の本人情報を広く集め続けること。</p></div>
+          </article>
+        </div>
+      </div>
+
+      <div class="subsection">
+        <div class="subsection-title"><h3>やらないこと</h3></div>
+        <div class="not-doing">
+          <article class="not-item"><h4>電子化を成功とみなさない</h4><p>紙の券面を画面に再現しただけでは、権利の一貫性を得られない。</p></article>
+          <article class="not-item"><h4>不正転売市場全体を取り締まらない</h4><p>市場監視ではなく、正規に移転した権利を入場判断で区別する範囲を担う。</p></article>
+          <article class="not-item"><h4>会場保安を置き換えない</h4><p>入場権の有効性と、警備・危険物確認を同じ判断にしない。</p></article>
+          <article class="not-item"><h4>一つの本人確認方法へ固定しない</h4><p>端末や身体的条件が異なる来場者にも代替経路を残す。</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section id="evidence" class="block wrap" data-nav="evidence">
+      <div class="section-head">
+        <div class="section-number">02 / North Star Evidence</div>
+        <div>
+          <h2>根拠と仮説を分け、見直し条件を置く。</h2>
+          <p>ここはProduct North Starの「根拠と仮説」「見直し条件」「未決」に当たる。出典・時点のある観測事実と反証可能な仮説を分け、長期の方向を疑い直す条件を残す。</p>
+        </div>
+      </div>
+
+      <div class="evidence-grid">
+        <article class="evidence-column fact">
+          <h3>観測事実</h3>
+          <div class="evidence-list">
+            <div class="evidence-item"><h4>紙に起因する相談が集中</h4><p>120件中38件が配送遅延、紛失、持参忘れに関する相談だった。</p><span class="proof">出典：作例用の仮想相談記録 ／ 2026-07-31</span></div>
+            <div class="evidence-item"><h4>非正規取引の被害</h4><p>120件中17件で、取引後に利用できない券を受け取ったとの申告があった。</p><span class="proof">出典：作例用の仮想相談記録 ／ 2026-07-31</span></div>
+            <div class="evidence-item"><h4>入口間で利用記録を即時照合できない</h4><p>二つの会場演習で、同じ表示内容が別の入口でほぼ同時に提示された場合、その場で照合できなかった。</p><span class="proof">出典：作例用の仮想入場演習記録 ／ 2026-07-20</span></div>
+            <div class="evidence-item"><h4>例外判断が統一されていない</h4><p>販売記録・本人情報・利用記録のどれを優先するかが係員ごとに異なった。</p><span class="proof">出典：作例用の仮想業務観察 ／ 2026-07-24</span></div>
+          </div>
+        </article>
+        <article class="evidence-column hypothesis">
+          <h3>採用する仮説</h3>
+          <div class="evidence-list">
+            <div class="evidence-item"><h4>不安の中心は媒体ではなく権利状態</h4><p>権利状態を事前に示しても不安が変わらないか、媒体別の聞き取りで反証する。</p></div>
+            <div class="evidence-item"><h4>正規譲渡の不足が非正規取引へ押し出す</h4><p>正規手段の有無・利用率と、非正規取引を選んだ理由を比較して反証する。</p></div>
+            <div class="evidence-item"><h4>入口滞留は例外対応の混在で増える</h4><p>通常判定と例外対応の所要時間を分けて観測し、読取速度との寄与を比較する。</p></div>
+          </div>
+        </article>
+      </div>
+
+      <div class="subsection">
+        <div class="subsection-title"><h3>見直し条件</h3></div>
+        <div class="review-grid">
+          <article class="review-card"><h4>権利と個人を分けられない</h4><p>法令や主要会場の条件により、権利と個人の同一性を分けて扱えない場合は対象・判断原則を再策定する。</p></article>
+          <article class="review-card"><h4>別の価値が来場者を支配する</h4><p>権利の確実な行使より別の不利益解消が継続的に重視されるなら、約束する価値を見直す。</p></article>
+          <article class="review-card"><h4>正規の権利移転が認められない</h4><p>対象イベントで譲渡・二次流通が認められなくなった場合、対象と役割の移転境界を見直す。</p></article>
+        </div>
+      </div>
+
+      <div class="subsection">
+        <div class="subsection-title"><h3>未決</h3></div>
+        <div class="card-grid">
+          <article class="card"><h3>本人情報はどこまで必要か</h3><p>法務・主催者・会場運営と不正／誤拒否事例を照合し、取得履歴以外に必要な情報と代替手段を確認する。</p></article>
+          <article class="card"><h3>通信断で何を両立できるか</h3><p>入口での権利一貫性と通過継続の両立範囲を、通信断を含む入場演習で確認する。</p></article>
+          <article class="card"><h3>端末を使えない人をどう救済するか</h3><p>該当する来場者と係員による模擬運用で、新たな不利益を生まない代替経路を確認する。</p></article>
+          <article class="card"><h3>正規譲渡と営利転売を何で区別するか</h3><p>販売条件と反復売買を含む想定事例を照合し、判断に使える事実を確認する。</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section id="strategy" class="block wrap" data-nav="strategy">
+      <div class="section-head">
+        <div class="section-number">03 / Strategy</div>
+        <div>
+          <h2>弱い環へ、資源を集中する。</h2>
+          <p>North Starは変えず、現在地から前進を止める一つの課題を選び、診断・基本方針・一貫した行動を因果でつなぐ。</p>
+        </div>
+      </div>
+
+      <div class="strategy-kernel" aria-label="Rumeltの戦略カーネル">
+        <article class="kernel-part"><span>1</span><h3>診断</h3><p>全体を止める最重要課題と弱い環を一つに絞る。</p></article>
+        <article class="kernel-part"><span>2</span><h3>基本方針</h3><p>何へ集中し、何を捨て、制約へどう向き合うかを選ぶ。</p></article>
+        <article class="kernel-part"><span>3</span><h3>一貫した行動</h3><p>前の成果が次を可能にする、少数の行動の鎖をつくる。</p></article>
+      </div>
+
+      <div class="subsection diagnosis">
+        <h3>診断 — 最重要課題</h3>
+        <p class="focus">現在の入場権が誰にあり、正規にどう移り、いつ行使されたかを、購入から当日の救済まで一続きの根拠として扱えていない。</p>
+        <p class="reason">配送・読取速度・転売監視を個別に改善しても、販売、譲渡、入口、救済の記録が分断されたままでは、正当な来場者へ届く全体価値は上がらない。症状は「長い列」だが、現時点の原因仮説は例外判断と権利状態の分断にある。</p>
+        <div class="weak-link" aria-label="価値提供の鎖と弱い環">
+          <div class="link">正規販売</div>
+          <div class="link weak">権利状態の連続性</div>
+          <div class="link">入場判定</div>
+          <div class="link">例外救済</div>
+        </div>
+      </div>
+
+      <div class="subsection">
+        <div class="subsection-title"><h3>基本方針</h3></div>
+        <div class="policy">
+          <article class="policy-main">
+            <h3>表示ではなく「入場権」を中心に置く</h3>
+            <p>販売・正規譲渡・入場・救済を同じ入場権へつなぎ、現在の正当な権利だけが行使できる経路を、限定したイベントで先に成立させる。</p>
+          </article>
+          <div class="policy-side">
+            <article class="choice-box"><h4>集中すること</h4><p>正規購入から譲渡・利用・救済まで権利が途切れないこと、その経路を来場者と係員が理解できること。</p></article>
+            <article class="choice-box no"><h4>やらないこと</h4><p>入場方式の追加、価格最適化、全不正取引の監視、全主催者への一斉展開へ資源を分散しない。</p></article>
+          </div>
+        </div>
+        <div class="policy-detail">
+          <h4>集中を具体化する資源配分</h4>
+          <table class="resource-table">
+            <caption style="text-align:left;padding:0 0 10px;color:var(--muted);font-size:13px;">基本方針に沿って、限られた能力を弱い環へ寄せる。</caption>
+            <thead><tr><th scope="col">集中先</th><th scope="col">使う能力</th><th scope="col">先に確かめること</th><th scope="col">資源を置かない先</th></tr></thead>
+            <tbody>
+              <tr><td>入場権の状態モデル</td><td>販売記録・入口利用記録</td><td>関係者間で状態が一意になるか</td><td>券面デザインの刷新</td></tr>
+              <tr><td>限定イベントの正規譲渡</td><td>二次流通を試せる環境</td><td>非正規経路を選ぶ理由が減るか</td><td>全主催者への一斉展開</td></tr>
+              <tr><td>入口の例外救済</td><td>会場設備・係員の業務知識</td><td>誤拒否と通常列への影響を下げられるか</td><td>市場全体の転売監視</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="policy-review">
+          <strong>方針を見直す条件</strong>
+          <p>入場権を一続きにしても来場前の不安、誤拒否、救済時間が改善せず、本人同一性・物理容量・読取速度など別の要因が全体を止めていると分かった場合、診断と基本方針を見直す。</p>
+        </div>
+      </div>
+
+      <div class="subsection">
+        <div class="subsection-title"><h3>一貫した行動</h3></div>
+        <div class="actions">
+          <article class="action">
+            <div>
+              <h3>入場権を一つの根拠で追えるようにする</h3>
+              <p>現在の保有者、正規の移転、利用結果を同じ入場権へ積み重ね、購入・譲渡・取消・利用・救済の事例で状態の食い違いがないことを確かめる。</p>
+            </div>
+            <div class="action-outcome"><strong>次を可能にする成果</strong><span>移転前後の正当な保有者を一意に説明できる。</span></div>
+          </article>
+          <article class="action">
+            <div>
+              <h3>正規に手放し、受け取れる経路を標準にする</h3>
+              <p>来場不能時の正式な譲渡を販売後の標準選択肢にし、移転成立と同時に旧保有者の権利を終了して、新保有者へ案内と救済を届ける。</p>
+            </div>
+            <div class="action-outcome"><strong>次を可能にする成果</strong><span>正規移転後の権利だけを入口で判定できる。</span></div>
+          </article>
+          <article class="action">
+            <div>
+              <h3>入場と救済を同じ入場権へつなぐ</h3>
+              <p>表示の見た目ではなく現在の入場権で判定し、通常判定から外れた正当な来場者も同じ履歴から救済する。結果を前段の権利設計と譲渡経路へ戻す。</p>
+            </div>
+            <div class="action-outcome"><strong>学習を戻す成果</strong><span>拒否理由・救済成否・再発を記録し、弱い環を継続改善できる。</span></div>
+          </article>
+        </div>
+        <div class="proximate">
+          <div class="flag" aria-hidden="true">⚑</div>
+          <div><h3>まず到達する状態</h3><p>限定した主催者の公演で、正規購入、来場不能時の譲渡、新しい保有者の入場、問題時の救済までを一つの入場権から説明できる。到達後、次の障害が本人との結び付き・通信・利用条件・正規経路の使いやすさのどれかを観測する。</p></div>
+        </div>
+      </div>
+
+    </section>
+
+    <section id="critique" class="block wrap" data-nav="critique">
+      <div class="section-head">
+        <div class="section-number">04 / Critique</div>
+        <div>
+          <h2>戦略を反証してから使う。</h2>
+          <p>別エージェントによる独立レビューを前提に、戦略カーネルの接続、根拠、弱い環、近い目標を評価する。合格は正しさの保証ではなく、提示された根拠に対する整合性の判定。</p>
+        </div>
+      </div>
+
+      <div class="verdict">
+        <div class="verdict-mark"><div><small>VERDICT</small><strong>合格</strong></div></div>
+        <div class="verdict-body"><h3>提示された架空根拠に対して、戦略カーネルは整合する</h3><p>最重要課題が一つに絞られ、基本方針が取捨選択を生み、三つの行動が因果で接続している。North Starを書き換えず、限定運用という手の届く状態へ翻訳できている。合格は実市場での正しさや利用者合意を保証しない。</p></div>
+      </div>
+
+      <div class="critique-grid">
+        <article class="critique-item"><h4>診断への反証</h4><p>列の支配要因が物理容量や読取速度なら診断は崩れる。通常判定と例外対応の時間を分離して確認する。</p></article>
+        <article class="critique-item"><h4>基本方針への反証</h4><p>権利を一続きにしても不安や誤拒否が減らないなら、本人との結び付きなど別の弱い環へ方針を変える。</p></article>
+        <article class="critique-item"><h4>行動への反証</h4><p>正規譲渡が利用されない理由が手数料・条件にある場合、権利状態の整備だけでは行動2から3へ進めない。</p></article>
+        <article class="critique-item"><h4>制約</h4><p>通信断、複数入口、法令・販売条件の差、端末格差を限定運用の試験条件へ含める必要がある。</p></article>
+        <article class="critique-item"><h4>残存リスク</h4><p>本人情報の必要範囲と、オフライン時の整合方式は未決。大規模展開前に結論または停止条件が必要。</p></article>
+        <article class="critique-item"><h4>再評価条件</h4><p>限定イベントで入場成功、誤拒否、救済時間、正規譲渡利用率を観測し、反対説明と比較して再判定する。</p></article>
+      </div>
+    </section>
+
+    <section class="block wrap" aria-labelledby="source-title">
+      <div class="source-box">
+        <h2 id="source-title" style="margin-top:0;">由来と検証範囲</h2>
+        <p>題材: <a href="./electronic-ticket-industry-challenges.md">電子チケットが必要になるまでの業界課題</a></p>
+        <p>適用した境界: North Starは対象・望む状態・価値・役割・判断原則・非目標・根拠と仮説・見直し条件・未決に限定し、診断や行動計画を混ぜていない。Strategyは診断・基本方針・一貫した行動に限定し、North Starの内容を保持した。</p>
+        <p>未検証: 本資料は架空の観測事実に基づくため、実市場・法令・会場設備・顧客行動への適合性は確認していない。実行判断には実データによる再検証が必要。</p>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap footer-inner">
+      <span>Electronic Ticket Product Planning Exercise</span>
+      <span>North Starは方向、Strategyは現在地からの経路。</span>
+    </div>
+  </footer>
+
+  <script>
+    const toggle = document.querySelector('.nav-toggle');
+    const nav = document.querySelector('#page-nav');
+    const links = [...nav.querySelectorAll('a')];
+    toggle.addEventListener('click', () => {
+      const open = nav.classList.toggle('open');
+      toggle.setAttribute('aria-expanded', String(open));
+    });
+    links.forEach(link => link.addEventListener('click', () => {
+      nav.classList.remove('open');
+      toggle.setAttribute('aria-expanded', 'false');
+    }));
+
+    const sections = document.querySelectorAll('[data-nav]');
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (!entry.isIntersecting) return;
+        links.forEach(link => link.classList.toggle('active', link.getAttribute('href') === `#${entry.target.dataset.nav}`));
+      });
+    }, { rootMargin: '-28% 0px -62% 0px' });
+    sections.forEach(section => observer.observe(section));
+  </script>
+</body>
+</html>

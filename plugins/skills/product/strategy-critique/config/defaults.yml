@@ -1,0 +1,11 @@
+version: 1
+output_dir: product/strategy-critique
+artifact:
+  kind: strategy-critique
+  required_sections: [判定, 診断への反証, 基本方針への反証, 一貫した行動への反証, 鎖構造と近い目標への反証, 制約・根拠・鮮度, 修正要求]
+  required_nonempty_sections: [判定, 診断への反証, 基本方針への反証, 一貫した行動への反証, 鎖構造と近い目標への反証, 制約・根拠・鮮度]
+  verdict_section: 判定
+  allowed_verdicts: [合格, 要修正]
+instructions:
+  critique:
+    directive: 入力文書を編集せず、戦略の核と根拠を反証して合格または要修正を返す

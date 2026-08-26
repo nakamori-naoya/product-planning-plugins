@@ -1,0 +1,20 @@
+{
+  "name": "product-north-star",
+  "version": "0.2.1",
+  "description": "プロダクトが実現する価値ある未来と長期の判断基準を文書化する",
+  "skills": "./skills",
+  "author": {
+    "name": "NaoyaNakamori"
+  },
+  "interface": {
+    "displayName": "Product North Star",
+    "shortDescription": "プロダクトが実現する価値ある未来と長期の判断基準を文書化する",
+    "longDescription": "プロダクトが実現する価値ある未来と長期の判断基準を文書化する",
+    "developerName": "NaoyaNakamori",
+    "category": "Productivity",
+    "capabilities": [
+      "Skills"
+    ],
+    "defaultPrompt": "product-north-starを使ってこの作業を進めてください。"
+  }
+}

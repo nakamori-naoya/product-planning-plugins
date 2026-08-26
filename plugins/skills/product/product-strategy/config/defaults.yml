@@ -1,0 +1,9 @@
+version: 1
+output_dir: product/strategy
+artifact:
+  kind: product-strategy
+  required_sections: [診断, 基本方針, 一貫した行動]
+  required_nonempty_sections: [診断, 基本方針, 一貫した行動]
+instructions:
+  strategy:
+    directive: 現状が生む問題とNorth Starへ進む際の障壁から最重要課題と弱い環を診断し、基本方針と因果でつながる少数の行動を一つの戦略カーネルにする

@@ -1,0 +1,58 @@
+# product-north-star-planning — 価値判断を対話で確かめ、戦略へ越境しない北極星を完成させる。
+version: 2
+name: product-north-star-planning
+description: 顧客理解と価値仮説から対話的にProduct North Starを作り、成果物境界を検証して資料に保存する
+document_type: north-star
+output_format: markdown
+instructions:
+  execution:
+    directive: stepsを上から順に実行し、根拠・仮説・決定・未決をNorth Starへ渡し、検証を通るまで完成扱いにしない
+  interaction:
+    directive: 資料から分かることを聞かず、受益者、望む未来、価値、判断原則、非目標、見直し条件をgrillで1問ずつ確かめる
+
+requires:
+  - {plugin: grill, marketplace: grill, version: 0.2.12}
+  - {plugin: product-north-star, marketplace: product-planning, version: 0.2.1}
+  - {plugin: write-doc, marketplace: write-doc, version: 0.6.0}
+  - {plugin: intermediate-cleanup, marketplace: product-planning, version: 0.1.0}
+
+contract:
+  north_star_sections: [対象, 望む状態, 約束する価値, プロダクトの役割, 判断原則, やらないこと, 根拠と仮説, 見直し条件, 未決]
+  forbidden_sections: [診断, 基本方針, 一貫した行動, 資源配分, 行動計画, ロードマップ, 期限つき施策]
+  cleanup:
+    delete_after_document: [candidate_product_north_star_path, product_north_star_path]
+    preserve: [product_north_star_document_path]
+
+requirements:
+  interactive_with_grill: true
+  no_strategy_output: true
+
+steps:
+  - id: settle-north-star
+    skill: grill
+    purpose: 入力と参照資料の根拠・仮説・未決を分け、北極星に必要な価値判断を一問ずつ確かめる
+    provides: [north_star_evidence, decisions, unresolved]
+
+  - id: define-north-star
+    skill: define-product-north-star
+    purpose: 確かめた価値判断からProduct North Starを保存する
+    needs: [north_star_evidence, decisions, unresolved]
+    provides: [candidate_product_north_star_path]
+
+  - id: verify
+    script: scripts/verify.py
+    purpose: 必須節と空欄を検査し、戦略の節を含まないNorth Starだけを返す
+    needs: [candidate_product_north_star_path]
+    provides: [product_north_star_path]
+
+  - id: document
+    playbook: write-doc
+    purpose: 検査済みNorth Starを専用の型で読み手向け資料にし、Markdownで保存する
+    needs: [product_north_star_path]
+    provides: [product_north_star_document_path]
+
+  - id: cleanup
+    skill: remove-intermediate-artifacts
+    purpose: 最終資料の保存を確認した後、contract.cleanupで削除候補にしたNorth Starの作業用成果物だけを削除し、最終資料を保持する
+    needs: [candidate_product_north_star_path, product_north_star_path, product_north_star_document_path]
+    provides: [cleanup_report]

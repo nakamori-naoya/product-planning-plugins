@@ -1,0 +1,10 @@
+version: 1
+output_dir: product/context
+artifact:
+  kind: product-context
+  required_sections: [対象と観測時点, 事実, 仮説, 未確認事項, 制約, 能力, 機会, 課題]
+  required_nonempty_sections: [対象と観測時点, 事実, 課題]
+  evidence_sections: [事実]
+instructions:
+  mapping:
+    directive: 観測事実を出典と時点つきで記録し、仮説・未確認事項・制約・能力・機会から分離して課題候補を洗い出す

@@ -1,0 +1,20 @@
+{
+  "name": "strategy-critique",
+  "version": "0.2.2",
+  "description": "プロダクト戦略を編集せず反証し合格または要修正で判定する",
+  "skills": "./skills",
+  "author": {
+    "name": "NaoyaNakamori"
+  },
+  "interface": {
+    "displayName": "Strategy Critique",
+    "shortDescription": "プロダクト戦略を編集せず反証し合格または要修正で判定する",
+    "longDescription": "プロダクト戦略を編集せず反証し合格または要修正で判定する",
+    "developerName": "NaoyaNakamori",
+    "category": "Productivity",
+    "capabilities": [
+      "Skills"
+    ],
+    "defaultPrompt": "strategy-critiqueを使ってこの作業を進めてください。"
+  }
+}

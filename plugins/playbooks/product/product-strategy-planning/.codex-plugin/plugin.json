@@ -1,0 +1,20 @@
+{
+  "name": "product-strategy-planning",
+  "version": "0.4.0",
+  "description": "既存のProduct North Starを保ち、診断・基本方針・一貫した行動の戦略資料を作って保存する",
+  "skills": "./skills",
+  "author": {
+    "name": "NaoyaNakamori"
+  },
+  "interface": {
+    "displayName": "Product Strategy Planning",
+    "shortDescription": "既存のProduct North Starを保ち、診断・基本方針・一貫した行動の戦略資料を作って保存する",
+    "longDescription": "既存のProduct North Starを保ち、診断・基本方針・一貫した行動の戦略資料を作って保存する",
+    "developerName": "NaoyaNakamori",
+    "category": "Productivity",
+    "capabilities": [
+      "Skills"
+    ],
+    "defaultPrompt": "product-strategy-planningを使ってこの作業を進めてください。"
+  }
+}
