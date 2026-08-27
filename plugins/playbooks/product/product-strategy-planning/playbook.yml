@@ -11,12 +11,12 @@ instructions:
     directive: 資料から分かることを聞かず、最重要課題、弱い環、近い目標、制約への態度、トレードオフ、非目標、資源集中をgrillで1問ずつ確かめる
 
 requires:
-  - {plugin: product-context, marketplace: product-planning, version: 0.2.0}
-  - {plugin: grill, marketplace: grill, version: 0.2.12}
-  - {plugin: product-strategy, marketplace: product-planning, version: 0.3.1}
-  - {plugin: strategy-critique, marketplace: product-planning, version: 0.2.2}
-  - {plugin: write-doc, marketplace: write-doc, version: 0.6.0}
-  - {plugin: intermediate-cleanup, marketplace: product-planning, version: 0.1.0}
+  - {plugin: product-context, marketplace: product-planning}
+  - {plugin: grill, marketplace: grill}
+  - {plugin: product-strategy, marketplace: product-planning}
+  - {plugin: strategy-critique, marketplace: product-planning}
+  - {plugin: write-doc, marketplace: write-doc}
+  - {plugin: intermediate-cleanup, marketplace: product-planning}
 
 contract:
   north_star_sections: [対象, 望む状態, 約束する価値, プロダクトの役割, 判断原則, やらないこと, 根拠と仮説, 見直し条件, 未決]

@@ -4,7 +4,7 @@
 
 ## 必要なplugin
 
-`grill`、`product-north-star`、`write-doc`、`intermediate-cleanup`。
+`grill@grill`、`product-north-star@product-planning`、`write-doc@write-doc`、`intermediate-cleanup@product-planning`。versionは固定せず、解決先のmanifest identityと必要なskillまたはplaybookを検査する。
 
 ## 入力と出力
 
