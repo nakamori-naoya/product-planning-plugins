@@ -4,7 +4,9 @@ Product North Starを定義し、そこからRumelt型Product Strategyを立案�
 
 ## インストール
 
-Codexでは、marketplaceを登録した後、必要なpluginのコマンドを実行する。
+### Codex
+
+Codexのpluginコマンドには`--scope`がない。通常の手順はuser単位でmarketplaceとpluginを登録する。
 
 ```bash
 codex plugin marketplace add nakamori-naoya/product-planning-plugins
@@ -17,17 +19,48 @@ codex plugin add product-north-star-planning@product-planning
 codex plugin add product-strategy-planning@product-planning
 ```
 
-Claude Codeでは、marketplaceを登録した後、必要なpluginのコマンドを実行する。
+このrepositoryだけに分離したい場合は、repository専用の`CODEX_HOME`を作り、インストール時と利用時に同じ値を指定する。
 
 ```bash
-claude plugin marketplace add nakamori-naoya/product-planning-plugins
-claude plugin install product-context@product-planning
-claude plugin install product-north-star@product-planning
-claude plugin install product-strategy@product-planning
-claude plugin install strategy-critique@product-planning
-claude plugin install intermediate-cleanup@product-planning
-claude plugin install product-north-star-planning@product-planning
-claude plugin install product-strategy-planning@product-planning
+mkdir -p .codex-home
+export CODEX_HOME="$PWD/.codex-home"
+
+codex plugin marketplace add nakamori-naoya/product-planning-plugins
+codex plugin add product-context@product-planning
+codex plugin add product-north-star@product-planning
+codex plugin add product-strategy@product-planning
+codex plugin add strategy-critique@product-planning
+codex plugin add intermediate-cleanup@product-planning
+codex plugin add product-north-star-planning@product-planning
+codex plugin add product-strategy-planning@product-planning
+codex
+```
+
+`CODEX_HOME`には認証、設定、ログ、session、plugin metadataも保存されるため、このdirectoryはGit管理しない。
+
+### Claude Code
+
+Claude Codeは次のscopeを選べる。
+
+| scope | 対象 |
+|---|---|
+| `user` | user全体。省略時の既定値 |
+| `project` | このrepositoryで有効にする設定をGitでチーム共有する |
+| `local` | このrepositoryで有効にするが、Git共有せず自分だけで使う |
+
+repository設定としてインストールする場合は`project`を指定する。`CLAUDE_PLUGIN_SCOPE`を`user`または`local`へ変えれば、同じ手順でscopeを切り替えられる。
+
+```bash
+CLAUDE_PLUGIN_SCOPE=project
+
+claude plugin marketplace add nakamori-naoya/product-planning-plugins --scope "$CLAUDE_PLUGIN_SCOPE"
+claude plugin install product-context@product-planning --scope "$CLAUDE_PLUGIN_SCOPE"
+claude plugin install product-north-star@product-planning --scope "$CLAUDE_PLUGIN_SCOPE"
+claude plugin install product-strategy@product-planning --scope "$CLAUDE_PLUGIN_SCOPE"
+claude plugin install strategy-critique@product-planning --scope "$CLAUDE_PLUGIN_SCOPE"
+claude plugin install intermediate-cleanup@product-planning --scope "$CLAUDE_PLUGIN_SCOPE"
+claude plugin install product-north-star-planning@product-planning --scope "$CLAUDE_PLUGIN_SCOPE"
+claude plugin install product-strategy-planning@product-planning --scope "$CLAUDE_PLUGIN_SCOPE"
 ```
 
 ## インストール済みである必要があるplugin
