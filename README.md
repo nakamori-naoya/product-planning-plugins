@@ -2,6 +2,34 @@
 
 Product North Starを定義し、そこからRumelt型Product Strategyを立案・独立反証するClaude Code/Codex両対応marketplaceである。電子チケット題材のHTML作例を`docs/exercises/product-planning`に含む。
 
+## インストール
+
+Codexでは、marketplaceを登録した後、必要なpluginのコマンドを実行する。
+
+```bash
+codex plugin marketplace add nakamori-naoya/product-planning-plugins
+codex plugin add product-context@product-planning
+codex plugin add product-north-star@product-planning
+codex plugin add product-strategy@product-planning
+codex plugin add strategy-critique@product-planning
+codex plugin add intermediate-cleanup@product-planning
+codex plugin add product-north-star-planning@product-planning
+codex plugin add product-strategy-planning@product-planning
+```
+
+Claude Codeでは、marketplaceを登録した後、必要なpluginのコマンドを実行する。
+
+```bash
+claude plugin marketplace add nakamori-naoya/product-planning-plugins
+claude plugin install product-context@product-planning
+claude plugin install product-north-star@product-planning
+claude plugin install product-strategy@product-planning
+claude plugin install strategy-critique@product-planning
+claude plugin install intermediate-cleanup@product-planning
+claude plugin install product-north-star-planning@product-planning
+claude plugin install product-strategy-planning@product-planning
+```
+
 ## インストール済みである必要があるplugin
 
 このrepository外の依存だけを記載する。
