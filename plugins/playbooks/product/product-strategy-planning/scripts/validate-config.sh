@@ -12,7 +12,8 @@ jq -e '
   .requirements.stop_on_required_revision==true and
   .document_type=="strategy" and
   .output_format=="markdown" and
-  [.requires[].plugin]==["product-context","grill","product-strategy","strategy-critique","write-doc","intermediate-cleanup"] and
+  [.requires[].plugin]==["product-context","grill","product-strategy","strategy-critique","write-doc","write-doc-cleanup"] and
+  [.requires[].marketplace]==["product-planning","grill","product-planning","product-planning","write-doc","write-doc"] and
   .contract.cleanup.delete_after_document==["product_context_path","product_strategy_path","strategy_critique_path","verified_strategy_path"] and
   .contract.cleanup.preserve==["product_north_star_path","product_strategy_document_path"] and
   [.steps[].id]==["validate-north-star","map-context","settle-strategy","form-strategy","critique","verify","document","cleanup"] and

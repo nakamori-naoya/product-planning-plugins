@@ -14,7 +14,7 @@ requires:
   - {plugin: grill, marketplace: grill}
   - {plugin: product-north-star, marketplace: product-planning}
   - {plugin: write-doc, marketplace: write-doc}
-  - {plugin: intermediate-cleanup, marketplace: product-planning}
+  - {plugin: write-doc-cleanup, marketplace: write-doc}
 
 contract:
   north_star_sections: [対象, 望む状態, 約束する価値, プロダクトの役割, 判断原則, やらないこと, 根拠と仮説, 見直し条件, 未決]

@@ -3,7 +3,6 @@
   {"name":"product-north-star","source":{"source":"local","path":"./plugins/skills/product/product-north-star"},"policy":{"installation":"AVAILABLE","authentication":"ON_INSTALL"},"category":"Productivity","version":"0.2.1"},
   {"name":"product-strategy","source":{"source":"local","path":"./plugins/skills/product/product-strategy"},"policy":{"installation":"AVAILABLE","authentication":"ON_INSTALL"},"category":"Productivity","version":"0.3.1"},
   {"name":"strategy-critique","source":{"source":"local","path":"./plugins/skills/product/strategy-critique"},"policy":{"installation":"AVAILABLE","authentication":"ON_INSTALL"},"category":"Productivity","version":"0.2.2"},
-  {"name":"intermediate-cleanup","source":{"source":"local","path":"./plugins/skills/authoring/intermediate-cleanup"},"policy":{"installation":"AVAILABLE","authentication":"ON_INSTALL"},"category":"Productivity","version":"0.1.0"},
-  {"name":"product-north-star-planning","source":{"source":"local","path":"./plugins/playbooks/product/product-north-star-planning"},"policy":{"installation":"AVAILABLE","authentication":"ON_INSTALL"},"category":"Productivity","version":"0.3.0"},
-  {"name":"product-strategy-planning","source":{"source":"local","path":"./plugins/playbooks/product/product-strategy-planning"},"policy":{"installation":"AVAILABLE","authentication":"ON_INSTALL"},"category":"Productivity","version":"0.4.0"}
+  {"name":"product-north-star-planning","source":{"source":"local","path":"./plugins/playbooks/product/product-north-star-planning"},"policy":{"installation":"AVAILABLE","authentication":"ON_INSTALL"},"category":"Productivity","version":"0.3.1"},
+  {"name":"product-strategy-planning","source":{"source":"local","path":"./plugins/playbooks/product/product-strategy-planning"},"policy":{"installation":"AVAILABLE","authentication":"ON_INSTALL"},"category":"Productivity","version":"0.4.1"}
 ]}

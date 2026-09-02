@@ -14,7 +14,6 @@ codex plugin add product-context@product-planning
 codex plugin add product-north-star@product-planning
 codex plugin add product-strategy@product-planning
 codex plugin add strategy-critique@product-planning
-codex plugin add intermediate-cleanup@product-planning
 codex plugin add product-north-star-planning@product-planning
 codex plugin add product-strategy-planning@product-planning
 ```
@@ -30,7 +29,6 @@ codex plugin add product-context@product-planning
 codex plugin add product-north-star@product-planning
 codex plugin add product-strategy@product-planning
 codex plugin add strategy-critique@product-planning
-codex plugin add intermediate-cleanup@product-planning
 codex plugin add product-north-star-planning@product-planning
 codex plugin add product-strategy-planning@product-planning
 codex
@@ -58,7 +56,6 @@ claude plugin install product-context@product-planning --scope "$CLAUDE_PLUGIN_S
 claude plugin install product-north-star@product-planning --scope "$CLAUDE_PLUGIN_SCOPE"
 claude plugin install product-strategy@product-planning --scope "$CLAUDE_PLUGIN_SCOPE"
 claude plugin install strategy-critique@product-planning --scope "$CLAUDE_PLUGIN_SCOPE"
-claude plugin install intermediate-cleanup@product-planning --scope "$CLAUDE_PLUGIN_SCOPE"
 claude plugin install product-north-star-planning@product-planning --scope "$CLAUDE_PLUGIN_SCOPE"
 claude plugin install product-strategy-planning@product-planning --scope "$CLAUDE_PLUGIN_SCOPE"
 ```
@@ -69,6 +66,7 @@ claude plugin install product-strategy-planning@product-planning --scope "$CLAUD
 
 - `grill@grill`
 - `write-doc@write-doc`
+- `write-doc-cleanup@write-doc`
 
 playbookの依存は`plugin@marketplace`のidentityだけを宣言し、versionは固定しない。開発用map、同じrepository、runtimeのinstall cacheの順に候補を調べ、解決したmanifestのidentityと必要なskillを検査する。
 

@@ -4,7 +4,7 @@
 
 ## 必要なplugin
 
-`product-context@product-planning`、`grill@grill`、`product-strategy@product-planning`、`strategy-critique@product-planning`、`write-doc@write-doc`、`intermediate-cleanup@product-planning`。versionは固定せず、解決先のmanifest identityと必要なskillまたはplaybookを検査する。
+`product-context@product-planning`、`grill@grill`、`product-strategy@product-planning`、`strategy-critique@product-planning`、`write-doc@write-doc`、`write-doc-cleanup@write-doc`。versionは固定せず、解決先のmanifest identityと必要なskillまたはplaybookを検査する。
 
 ## 入力と出力
 

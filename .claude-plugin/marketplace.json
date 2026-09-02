@@ -3,7 +3,6 @@
   {"name":"product-north-star","source":"./plugins/skills/product/product-north-star","description":"Product North Starを定義する","version":"0.2.1"},
   {"name":"product-strategy","source":"./plugins/skills/product/product-strategy","description":"Product Strategyを形成する","version":"0.3.1"},
   {"name":"strategy-critique","source":"./plugins/skills/product/strategy-critique","description":"Product Strategyを独立反証する","version":"0.2.2"},
-  {"name":"intermediate-cleanup","source":"./plugins/skills/authoring/intermediate-cleanup","description":"中間生成物を安全に削除する","version":"0.1.0"},
-  {"name":"product-north-star-planning","source":"./plugins/playbooks/product/product-north-star-planning","description":"North Starを立案し資料へ保存する","version":"0.3.0"},
-  {"name":"product-strategy-planning","source":"./plugins/playbooks/product/product-strategy-planning","description":"Strategyを立案・反証し資料へ保存する","version":"0.4.0"}
+  {"name":"product-north-star-planning","source":"./plugins/playbooks/product/product-north-star-planning","description":"North Starを立案し資料へ保存する","version":"0.3.1"},
+  {"name":"product-strategy-planning","source":"./plugins/playbooks/product/product-strategy-planning","description":"Strategyを立案・反証し資料へ保存する","version":"0.4.1"}
 ]}

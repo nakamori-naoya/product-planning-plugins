@@ -7,8 +7,6 @@ trap 'rm -rf "$TMP"' EXIT
 WRITER="$ROOT/shared/product/artifact.py"
 NORTH_ROOT="$ROOT/plugins/playbooks/product/product-north-star-planning"
 STRATEGY_ROOT="$ROOT/plugins/playbooks/product/product-strategy-planning"
-WRITE_DOC_ROOT=${WRITE_DOC_ROOT:-"$ROOT/../write-doc-plugins"}
-CONTENT_ROOT="$WRITE_DOC_ROOT/plugins/skills/authoring/content-types"
 PASS=0
 FAIL=0
 
@@ -158,87 +156,59 @@ echo "Scenario: 二つのplaybookは責務境界を変更できない"
 echo "  Given 正しいNorth Star策定とStrategy立案のplaybookがある"
 echo "  When requires、steps、needs、判定契約を一つずつ壊して検査する"
 "$NORTH_ROOT/scripts/validate-config.sh" <(yq -o=json '.' "$NORTH_ROOT/playbook.yml") && ok "north star playbook is valid" || ng "north star playbook validation"
-for expr in '.requires = [.requires[] | select(.plugin != "grill")]' '.requires = [.requires[] | select(.plugin != "intermediate-cleanup")]' '.steps[0].skill="define-product-north-star"' '.steps[3].playbook="grill-to-doc"' '.steps[4].skill="grill"' '.document_type="concept"' '.contract.forbidden_sections=[]'; do
+for expr in '.requires = [.requires[] | select(.plugin != "grill")]' '.requires = [.requires[] | select(.plugin != "write-doc-cleanup")]' '.requires[3].marketplace="product-planning"' '.steps[0].skill="define-product-north-star"' '.steps[3].playbook="grill-to-doc"' '.steps[4].skill="grill"' '.document_type="concept"' '.contract.forbidden_sections=[]'; do
   yq -o=json "$expr" "$NORTH_ROOT/playbook.yml" > "$TMP/north-mutated.json"
   expect_fail "$NORTH_ROOT/scripts/validate-config.sh" "$TMP/north-mutated.json"
 done
 "$STRATEGY_ROOT/scripts/validate-config.sh" <(yq -o=json '.' "$STRATEGY_ROOT/playbook.yml") && ok "strategy playbook is valid" || ng "strategy playbook validation"
-for expr in '.requires = [.requires[] | select(.plugin != "grill")]' '.requires = [.requires[] | select(.plugin != "intermediate-cleanup")]' '.steps[1].needs=[]' '.steps[5].needs=["product_strategy_path"]' '.steps[6].playbook="grill-to-doc"' '.steps[7].skill="grill"' '.document_type="concept"' '.contract.critique_verdicts=["pass","revise"]'; do
+for expr in '.requires = [.requires[] | select(.plugin != "grill")]' '.requires = [.requires[] | select(.plugin != "write-doc-cleanup")]' '.requires[5].marketplace="product-planning"' '.steps[1].needs=[]' '.steps[5].needs=["product_strategy_path"]' '.steps[6].playbook="grill-to-doc"' '.steps[7].skill="grill"' '.document_type="concept"' '.contract.critique_verdicts=["pass","revise"]'; do
   yq -o=json "$expr" "$STRATEGY_ROOT/playbook.yml" > "$TMP/strategy-mutated.json"
   expect_fail "$STRATEGY_ROOT/scripts/validate-config.sh" "$TMP/strategy-mutated.json"
 done
 echo "  Then どの変異も拒否される"
 
-echo "Scenario: 専用テンプレートと作例から最終資料を作れる"
-echo "  Given Product North StarとProduct Strategyの型、作例、write-doc工程がある"
-pair_file="$CONTENT_ROOT/assets/template-examples.yml"
-north_template="$CONTENT_ROOT/assets/templates/north-star.md"
-north_example="$CONTENT_ROOT/assets/examples/north-star.example.md"
-strategy_template="$CONTENT_ROOT/assets/templates/strategy.md"
-strategy_example="$CONTENT_ROOT/assets/examples/strategy.example.md"
-if [ "$(yq -r '.pairs["north-star"].template' "$pair_file")" = "templates/north-star.md" ] &&
-   [ "$(yq -r '.pairs["north-star"].example' "$pair_file")" = "examples/north-star.example.md" ] &&
-   [ "$(yq -r '.pairs.strategy.template' "$pair_file")" = "templates/strategy.md" ] &&
-   [ "$(yq -r '.pairs.strategy.example' "$pair_file")" = "examples/strategy.example.md" ]; then
-  ok "二つの型と作例の対応が登録されている"
-else
-  ng "二つの型と作例の対応"
-fi
-echo "  When playbook契約とテンプレート・作例の節順を比較する"
-jq -r '.playbook.contract.north_star_sections[]' "$TMP/north-resolved.json" > "$TMP/north-expected-headings"
-jq -r '.playbook.contract.strategy_sections[]' "$TMP/strategy-resolved.json" > "$TMP/strategy-expected-headings"
-for item in "$north_template:$TMP/north-expected-headings:North Starテンプレート" "$north_example:$TMP/north-expected-headings:North Star作例" "$strategy_template:$TMP/strategy-expected-headings:Strategyテンプレート" "$strategy_example:$TMP/strategy-expected-headings:Strategy作例"; do
-  file=${item%%:*}
-  rest=${item#*:}
-  expected=${rest%%:*}
-  label=${rest#*:}
-  awk '/^## / {sub(/^## /, ""); print}' "$file" > "$TMP/headings"
-  if cmp -s "$expected" "$TMP/headings"; then
-    ok "${label}の節順がplaybook契約と一致する"
+echo "Scenario: write-docの公開依存だけを明示dev-mapで解決する"
+echo "  Given 利用側が所有するwrite-doc-cleanupのmanifestとskill宣言がある"
+cleanup_root="$TMP/write-doc-cleanup"
+write_doc_root="$TMP/write-doc"
+grill_root="$TMP/grill"
+mkdir -p "$cleanup_root/.codex-plugin" "$cleanup_root/.claude-plugin" "$cleanup_root/skills/remove-intermediate-artifacts"
+mkdir -p "$write_doc_root/.codex-plugin" "$write_doc_root/.claude-plugin" "$write_doc_root/scripts"
+mkdir -p "$grill_root/.codex-plugin" "$grill_root/.claude-plugin"
+cleanup_root=$(cd "$cleanup_root" && pwd -P)
+write_doc_root=$(cd "$write_doc_root" && pwd -P)
+grill_root=$(cd "$grill_root" && pwd -P)
+printf '%s\n' '{"name":"write-doc-cleanup","version":"0.1.0"}' > "$cleanup_root/.codex-plugin/plugin.json"
+printf '%s\n' '{"name":"write-doc-cleanup","version":"0.1.0"}' > "$cleanup_root/.claude-plugin/plugin.json"
+printf '%s\n' '---' 'name: remove-intermediate-artifacts' 'description: fixture' '---' > "$cleanup_root/skills/remove-intermediate-artifacts/SKILL.md"
+printf '%s\n' '{"name":"write-doc","version":"0.6.0"}' > "$write_doc_root/.codex-plugin/plugin.json"
+printf '%s\n' '{"name":"write-doc","version":"0.6.0"}' > "$write_doc_root/.claude-plugin/plugin.json"
+printf '%s\n' 'version: 2' 'name: write-doc' 'description: fixture' 'instructions: {execution: {directive: fixture}}' 'requires: [{plugin: content-types, marketplace: write-doc}]' 'steps: [{id: fixture, skill: fixture, purpose: fixture}]' > "$write_doc_root/playbook.yml"
+printf '%s\n' '#!/usr/bin/env bash' 'exit 0' > "$write_doc_root/scripts/resolve.sh"
+chmod +x "$write_doc_root/scripts/resolve.sh"
+printf '%s\n' '{"name":"grill","version":"0.3.0"}' > "$grill_root/.codex-plugin/plugin.json"
+printf '%s\n' '{"name":"grill","version":"0.3.0"}' > "$grill_root/.claude-plugin/plugin.json"
+printf '%s\n' '---' 'name: grill' 'description: fixture' '---' > "$grill_root/SKILL.md"
+jq -n --arg cleanup "$cleanup_root" --arg write_doc "$write_doc_root" --arg grill "$grill_root" '{schema:1,dependencies:{"write-doc/write-doc-cleanup":$cleanup,"write-doc/write-doc":$write_doc,"grill/grill":$grill}}' > "$TMP/write-doc-dev-map.json"
+echo "  When 両playbookを標準resolverで解決する"
+for item in "$NORTH_ROOT:north" "$STRATEGY_ROOT:strategy"; do
+  playbook_root=${item%%:*}
+  label=${item#*:}
+  if HARNESS_PLUGIN_RUNTIME=codex HARNESS_PLUGIN_DEV_ROOTS="$TMP/write-doc-dev-map.json" HARNESS_PLUGIN_CACHE_ROOT="$TMP/empty-cache" bash "$playbook_root/scripts/resolve.sh" "$TMP" > "$TMP/${label}-with-cleanup.yml"; then
+    yq -o=json '.' "$TMP/${label}-with-cleanup.yml" | jq -e --arg root "$cleanup_root" '(( [.playbook.requires[] | select(.plugin=="write-doc-cleanup" and .marketplace=="write-doc") ] | length)==1) and (.deps["write-doc-cleanup"].root==$root) and (.deps["write-doc-cleanup"].source_kind=="dev-map")' >/dev/null && ok "${label}はwrite-doc-cleanupを公開契約で解決する" || ng "${label}のwrite-doc-cleanup依存"
   else
-    ng "${label}の節順"
+    ng "${label}の公開依存解決"
   fi
 done
-python3 "$WRITER" check --config "$TMP/north.json" --topic sample --body-file "$north_example" >/dev/null && ok "North Star作例は成果物契約を満たす" || ng "North Star作例の成果物契約"
-python3 "$WRITER" check --config "$TMP/strategy.json" --topic sample --body-file "$strategy_example" >/dev/null && ok "Strategy作例は成果物契約を満たす" || ng "Strategy作例の成果物契約"
-if ! rg -n '^- (責任|資源|順序|近い成果|検証|補強関係):' "$strategy_template" "$strategy_example" >/dev/null &&
-   ! rg -n '^- (観測したこと|現時点の見立て|まだ答えがない問い|集中すること|やらないこと|方針を見直す条件):' "$strategy_template" "$strategy_example" >/dev/null &&
-   ! rg -n '^## (鎖構造と近い目標|再診断トリガー|根拠)$' "$strategy_template" "$strategy_example" >/dev/null &&
-   rg -n '^### 行動のつながり$' "$strategy_example" >/dev/null &&
-   rg -n '^### まず到達する状態$' "$strategy_example" >/dev/null; then
-  ok "Strategyは三構成の本文として鎖と近い到達状態を読める"
+echo "  Then manifest identityとskill名だけを依存契約として検査する"
+mv "$cleanup_root/.codex-plugin/plugin.json" "$TMP/write-doc-cleanup-plugin.json"
+printf '%s\n' '{"name":"wrong-cleanup","version":"0.1.0"}' > "$cleanup_root/.codex-plugin/plugin.json"
+if HARNESS_PLUGIN_RUNTIME=codex HARNESS_PLUGIN_DEV_ROOTS="$TMP/write-doc-dev-map.json" HARNESS_PLUGIN_CACHE_ROOT="$TMP/empty-cache" bash "$NORTH_ROOT/scripts/resolve.sh" "$TMP" > "$TMP/north-invalid-cleanup.yml" 2> "$TMP/north-invalid-cleanup.err"; then
+  ng "不正なwrite-doc-cleanupのmanifestを拒否する"
 else
-  ng "Strategyの読みやすい三構成"
+  ok "不正なwrite-doc-cleanupのmanifestをNGとして集計する"
 fi
-if ! rg -n '複数回入場|エリアごとの入場' "$strategy_example" >/dev/null; then
-  ok "Strategy作例は局所的な入場方式ではなく全体戦略を扱う"
-else
-  ng "Strategy作例が局所的な入場方式へ狭まっている"
-fi
-if rg -n -F '](strategy-choice.svg)' "$strategy_template" >/dev/null &&
-   rg -n -F '](strategy-action-chain.svg)' "$strategy_template" >/dev/null &&
-   rg -n -F '](strategy-choice.example.svg)' "$strategy_example" >/dev/null &&
-   rg -n -F '](strategy-action-chain.example.svg)' "$strategy_example" >/dev/null &&
-   [ -s "$CONTENT_ROOT/assets/templates/strategy-choice.svg" ] &&
-   [ -s "$CONTENT_ROOT/assets/templates/strategy-action-chain.svg" ] &&
-   [ -s "$CONTENT_ROOT/assets/examples/strategy-choice.example.svg" ] &&
-   [ -s "$CONTENT_ROOT/assets/examples/strategy-action-chain.example.svg" ]; then
-  ok "Strategyの型と作例に選択と行動の鎖を示す外部図がある"
-else
-  ng "Strategyの外部図"
-fi
-if ! rg -n '^- ' "$north_template" "$north_example" >/dev/null &&
-   rg -n -F '](north-star-value-flow.svg)' "$north_template" >/dev/null &&
-   rg -n -F '](north-star-boundary.svg)' "$north_template" >/dev/null &&
-   rg -n -F '](north-star-value-flow.example.svg)' "$north_example" >/dev/null &&
-   rg -n -F '](north-star-boundary.example.svg)' "$north_example" >/dev/null; then
-  ok "North Starは見出しと本文で構成し、価値の流れと役割境界を外部図で示す"
-else
-  ng "North Starの見出し構成または外部図"
-fi
-echo "  Then write-docで保存した後に中間生成物だけを片付ける"
-jq -e '.playbook.steps[-2].playbook=="write-doc" and .playbook.steps[-2].provides==["product_north_star_document_path"] and .playbook.steps[-1].skill=="remove-intermediate-artifacts" and .playbook.steps[-1].provides==["cleanup_report"]' "$TMP/north-resolved.json" >/dev/null && ok "North Star資料の保存後に中間生成物を片付ける" || ng "North Star資料の保存と後片付け工程"
-jq -e '.playbook.steps[-2].playbook=="write-doc" and .playbook.steps[-2].provides==["product_strategy_document_path"] and .playbook.steps[-1].skill=="remove-intermediate-artifacts" and .playbook.steps[-1].provides==["cleanup_report"]' "$TMP/strategy-resolved.json" >/dev/null && ok "Strategy資料の保存後に中間生成物を片付ける" || ng "Strategy資料の保存と後片付け工程"
+mv "$TMP/write-doc-cleanup-plugin.json" "$cleanup_root/.codex-plugin/plugin.json"
 
 echo "Scenario: product repositoryには電子チケットの業界課題とHTML作例だけを置く"
 echo "  Given ドメイン・データモデリングの題材をBDD repositoryへ分離した"
@@ -287,11 +257,6 @@ paths=(
   "$ROOT/plugins/skills/product"
   "$ROOT/plugins/playbooks/product/product-north-star-planning"
   "$ROOT/plugins/playbooks/product/product-strategy-planning"
-  "$CONTENT_ROOT/assets/templates/north-star.md"
-  "$CONTENT_ROOT/assets/templates/strategy.md"
-  "$CONTENT_ROOT/assets/examples/north-star.example.md"
-  "$CONTENT_ROOT/assets/examples/strategy.example.md"
-  "$CONTENT_ROOT/references/detail/product.md"
 )
 terms=(
   "Layer""X"

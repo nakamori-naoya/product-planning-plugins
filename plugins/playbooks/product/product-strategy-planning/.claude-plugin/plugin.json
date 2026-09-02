@@ -1,6 +1,6 @@
 {
   "name": "product-strategy-planning",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "既存のProduct North Starを保ち、診断・基本方針・一貫した行動の戦略資料を作って保存する",
   "author": {
     "name": "NaoyaNakamori"
