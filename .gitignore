@@ -16,5 +16,7 @@ __pycache__/
 !/shared/
 !/tests/
 !/AGENTS.md
+!/LICENSE
 !/README.md
+!/SECURITY.md
 !/.gitignore
