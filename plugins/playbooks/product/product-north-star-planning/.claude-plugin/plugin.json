@@ -1,6 +1,6 @@
 {
   "name": "product-north-star-planning",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "対話で価値判断を確かめ、戦略へ越境しないProduct North Star資料を保存する",
   "author": {
     "name": "NaoyaNakamori"

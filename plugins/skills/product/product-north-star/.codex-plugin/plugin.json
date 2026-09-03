@@ -1,6 +1,6 @@
 {
   "name": "product-north-star",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "プロダクトが実現する価値ある未来と長期の判断基準を文書化する",
   "skills": "./skills",
   "author": {
