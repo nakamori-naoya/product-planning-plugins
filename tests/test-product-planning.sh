@@ -189,7 +189,7 @@ echo "  When 両playbookを標準resolverで解決する"
 for item in "$NORTH_ROOT:north" "$STRATEGY_ROOT:strategy"; do
   playbook_root=${item%%:*}
   label=${item#*:}
-  if HARNESS_PLUGIN_RUNTIME=codex HARNESS_PLUGIN_DEV_ROOTS="$TMP/write-doc-dev-map.json" HARNESS_PLUGIN_CACHE_ROOT="$TMP/empty-cache" bash "$playbook_root/scripts/resolve.sh" "$TMP" > "$TMP/${label}-with-cleanup.yml"; then
+  if HARNESS_PLUGIN_RUNTIME=codex HARNESS_PLUGIN_DEV_ROOTS="$TMP/write-doc-dev-map.json" bash "$playbook_root/scripts/resolve.sh" "$TMP" > "$TMP/${label}-with-cleanup.yml"; then
     yq -o=json '.' "$TMP/${label}-with-cleanup.yml" | jq -e --arg root "$write_doc_root" '(( [.playbook.requires[] | select(.plugin=="write-doc" and .marketplace=="write-doc") ] | length)==1) and (.deps["write-doc"].root==$root) and (.deps["write-doc"].source_kind=="dev-map")' >/dev/null && ok "${label}はwrite-doc playbook packageを公開契約で解決する" || ng "${label}のwrite-doc依存"
   else
     ng "${label}の公開依存解決"
@@ -198,7 +198,7 @@ done
 echo "  Then 公開packageのmanifest identityと同梱skillを依存契約として検査する"
 mv "$write_doc_root/.codex-plugin/plugin.json" "$TMP/write-doc-plugin.json"
 printf '%s\n' '{"name":"wrong-write-doc","version":"0.6.0","skills":["./skills/remove-intermediate-artifacts"]}' > "$write_doc_root/.codex-plugin/plugin.json"
-if HARNESS_PLUGIN_RUNTIME=codex HARNESS_PLUGIN_DEV_ROOTS="$TMP/write-doc-dev-map.json" HARNESS_PLUGIN_CACHE_ROOT="$TMP/empty-cache" bash "$NORTH_ROOT/scripts/resolve.sh" "$TMP" > "$TMP/north-invalid-cleanup.yml" 2> "$TMP/north-invalid-cleanup.err"; then
+if HARNESS_PLUGIN_RUNTIME=codex HARNESS_PLUGIN_DEV_ROOTS="$TMP/write-doc-dev-map.json" bash "$NORTH_ROOT/scripts/resolve.sh" "$TMP" > "$TMP/north-invalid-cleanup.yml" 2> "$TMP/north-invalid-cleanup.err"; then
   ng "不正なwrite-doc packageのmanifestを拒否する"
 else
   ok "不正なwrite-doc packageのmanifestをNGとして集計する"
