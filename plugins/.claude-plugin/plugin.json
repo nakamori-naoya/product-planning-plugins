@@ -7,11 +7,7 @@
   },
   "skills": [
     "./playbooks/product/product-north-star-planning",
-    "./playbooks/product/product-strategy-planning",
-    "./skills/product/product-context",
-    "./skills/product/product-north-star",
-    "./skills/product/product-strategy",
-    "./skills/product/strategy-critique"
+    "./playbooks/product/product-strategy-planning"
   ],
   "metadata": {
     "harness": {
