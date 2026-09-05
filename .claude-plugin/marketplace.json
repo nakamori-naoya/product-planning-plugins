@@ -1,8 +1,3 @@
-{"name":"product-planning","owner":{"name":"NaoyaNakamori"},"description":"Product North StarとProduct Strategyを立案・反証するmarketplace","plugins":[
-  {"name":"product-context","source":"./plugins/skills/product/product-context","description":"Productの現在地を構造化する","version":"0.2.1"},
-  {"name":"product-north-star","source":"./plugins/skills/product/product-north-star","description":"Product North Starを定義する","version":"0.2.2"},
-  {"name":"product-strategy","source":"./plugins/skills/product/product-strategy","description":"Product Strategyを形成する","version":"0.3.2"},
-  {"name":"strategy-critique","source":"./plugins/skills/product/strategy-critique","description":"Product Strategyを独立反証する","version":"0.2.3"},
-  {"name":"product-north-star-planning","source":"./plugins/playbooks/product/product-north-star-planning","description":"North Starを立案し資料へ保存する","version":"0.3.2"},
-  {"name":"product-strategy-planning","source":"./plugins/playbooks/product/product-strategy-planning","description":"Strategyを立案・反証し資料へ保存する","version":"0.4.2"}
+{"name":"product-planning","owner":{"name":"NaoyaNakamori"},"description":"Product North StarとProduct Strategyを一つのPlaybookパッケージとして配布するmarketplace","plugins":[
+  {"name":"product-planning","source":"./plugins","description":"North StarとStrategyの立案・反証Playbookを一括提供する","version":"1.0.0"}
 ]}

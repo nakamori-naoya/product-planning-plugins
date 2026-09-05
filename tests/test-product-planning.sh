@@ -156,59 +156,54 @@ echo "Scenario: 二つのplaybookは責務境界を変更できない"
 echo "  Given 正しいNorth Star策定とStrategy立案のplaybookがある"
 echo "  When requires、steps、needs、判定契約を一つずつ壊して検査する"
 "$NORTH_ROOT/scripts/validate-config.sh" <(yq -o=json '.' "$NORTH_ROOT/playbook.yml") && ok "north star playbook is valid" || ng "north star playbook validation"
-for expr in '.requires = [.requires[] | select(.plugin != "grill")]' '.requires = [.requires[] | select(.plugin != "write-doc-cleanup")]' '.requires[3].marketplace="product-planning"' '.steps[0].skill="define-product-north-star"' '.steps[3].playbook="grill-to-doc"' '.steps[4].skill="grill"' '.document_type="concept"' '.contract.forbidden_sections=[]'; do
+for expr in '.requires = [.requires[] | select(.plugin != "grill")]' '.requires = [.requires[] | select(.plugin != "write-doc")]' '.requires[2].marketplace="product-planning"' '.steps[0].skill="define-product-north-star"' '.steps[3].playbook="grill-to-doc"' '.steps[4].skill="grill"' '.document_type="concept"' '.contract.forbidden_sections=[]'; do
   yq -o=json "$expr" "$NORTH_ROOT/playbook.yml" > "$TMP/north-mutated.json"
   expect_fail "$NORTH_ROOT/scripts/validate-config.sh" "$TMP/north-mutated.json"
 done
 "$STRATEGY_ROOT/scripts/validate-config.sh" <(yq -o=json '.' "$STRATEGY_ROOT/playbook.yml") && ok "strategy playbook is valid" || ng "strategy playbook validation"
-for expr in '.requires = [.requires[] | select(.plugin != "grill")]' '.requires = [.requires[] | select(.plugin != "write-doc-cleanup")]' '.requires[5].marketplace="product-planning"' '.steps[1].needs=[]' '.steps[5].needs=["product_strategy_path"]' '.steps[6].playbook="grill-to-doc"' '.steps[7].skill="grill"' '.document_type="concept"' '.contract.critique_verdicts=["pass","revise"]'; do
+for expr in '.requires = [.requires[] | select(.plugin != "grill")]' '.requires = [.requires[] | select(.plugin != "write-doc")]' '.requires[4].marketplace="product-planning"' '.steps[1].needs=[]' '.steps[5].needs=["product_strategy_path"]' '.steps[6].playbook="grill-to-doc"' '.steps[7].skill="grill"' '.document_type="concept"' '.contract.critique_verdicts=["pass","revise"]'; do
   yq -o=json "$expr" "$STRATEGY_ROOT/playbook.yml" > "$TMP/strategy-mutated.json"
   expect_fail "$STRATEGY_ROOT/scripts/validate-config.sh" "$TMP/strategy-mutated.json"
 done
 echo "  Then どの変異も拒否される"
 
 echo "Scenario: write-docの公開依存だけを明示dev-mapで解決する"
-echo "  Given 利用側が所有するwrite-doc-cleanupのmanifestとskill宣言がある"
-cleanup_root="$TMP/write-doc-cleanup"
+echo "  Given write-doc playbook packageが資料作成と後片付けのskillを内包する"
 write_doc_root="$TMP/write-doc"
 grill_root="$TMP/grill"
-mkdir -p "$cleanup_root/.codex-plugin" "$cleanup_root/.claude-plugin" "$cleanup_root/skills/remove-intermediate-artifacts"
-mkdir -p "$write_doc_root/.codex-plugin" "$write_doc_root/.claude-plugin" "$write_doc_root/scripts"
+mkdir -p "$write_doc_root/.codex-plugin" "$write_doc_root/.claude-plugin" "$write_doc_root/scripts" "$write_doc_root/skills/remove-intermediate-artifacts"
 mkdir -p "$grill_root/.codex-plugin" "$grill_root/.claude-plugin"
-cleanup_root=$(cd "$cleanup_root" && pwd -P)
 write_doc_root=$(cd "$write_doc_root" && pwd -P)
 grill_root=$(cd "$grill_root" && pwd -P)
-printf '%s\n' '{"name":"write-doc-cleanup","version":"0.1.0"}' > "$cleanup_root/.codex-plugin/plugin.json"
-printf '%s\n' '{"name":"write-doc-cleanup","version":"0.1.0"}' > "$cleanup_root/.claude-plugin/plugin.json"
-printf '%s\n' '---' 'name: remove-intermediate-artifacts' 'description: fixture' '---' > "$cleanup_root/skills/remove-intermediate-artifacts/SKILL.md"
-printf '%s\n' '{"name":"write-doc","version":"0.6.0"}' > "$write_doc_root/.codex-plugin/plugin.json"
-printf '%s\n' '{"name":"write-doc","version":"0.6.0"}' > "$write_doc_root/.claude-plugin/plugin.json"
+printf '%s\n' '---' 'name: remove-intermediate-artifacts' 'description: fixture' '---' > "$write_doc_root/skills/remove-intermediate-artifacts/SKILL.md"
+printf '%s\n' '{"name":"write-doc","version":"0.6.0","skills":["./skills/remove-intermediate-artifacts"]}' > "$write_doc_root/.codex-plugin/plugin.json"
+printf '%s\n' '{"name":"write-doc","version":"0.6.0","skills":["./skills/remove-intermediate-artifacts"]}' > "$write_doc_root/.claude-plugin/plugin.json"
 printf '%s\n' 'version: 2' 'name: write-doc' 'description: fixture' 'instructions: {execution: {directive: fixture}}' 'requires: [{plugin: content-types, marketplace: write-doc}]' 'steps: [{id: fixture, skill: fixture, purpose: fixture}]' > "$write_doc_root/playbook.yml"
 printf '%s\n' '#!/usr/bin/env bash' 'exit 0' > "$write_doc_root/scripts/resolve.sh"
 chmod +x "$write_doc_root/scripts/resolve.sh"
 printf '%s\n' '{"name":"grill","version":"0.3.0"}' > "$grill_root/.codex-plugin/plugin.json"
 printf '%s\n' '{"name":"grill","version":"0.3.0"}' > "$grill_root/.claude-plugin/plugin.json"
 printf '%s\n' '---' 'name: grill' 'description: fixture' '---' > "$grill_root/SKILL.md"
-jq -n --arg cleanup "$cleanup_root" --arg write_doc "$write_doc_root" --arg grill "$grill_root" '{schema:1,dependencies:{"write-doc/write-doc-cleanup":$cleanup,"write-doc/write-doc":$write_doc,"grill/grill":$grill}}' > "$TMP/write-doc-dev-map.json"
+jq -n --arg write_doc "$write_doc_root" --arg grill "$grill_root" '{schema:1,dependencies:{"write-doc/write-doc":$write_doc,"grill/grill":$grill}}' > "$TMP/write-doc-dev-map.json"
 echo "  When 両playbookを標準resolverで解決する"
 for item in "$NORTH_ROOT:north" "$STRATEGY_ROOT:strategy"; do
   playbook_root=${item%%:*}
   label=${item#*:}
   if HARNESS_PLUGIN_RUNTIME=codex HARNESS_PLUGIN_DEV_ROOTS="$TMP/write-doc-dev-map.json" HARNESS_PLUGIN_CACHE_ROOT="$TMP/empty-cache" bash "$playbook_root/scripts/resolve.sh" "$TMP" > "$TMP/${label}-with-cleanup.yml"; then
-    yq -o=json '.' "$TMP/${label}-with-cleanup.yml" | jq -e --arg root "$cleanup_root" '(( [.playbook.requires[] | select(.plugin=="write-doc-cleanup" and .marketplace=="write-doc") ] | length)==1) and (.deps["write-doc-cleanup"].root==$root) and (.deps["write-doc-cleanup"].source_kind=="dev-map")' >/dev/null && ok "${label}はwrite-doc-cleanupを公開契約で解決する" || ng "${label}のwrite-doc-cleanup依存"
+    yq -o=json '.' "$TMP/${label}-with-cleanup.yml" | jq -e --arg root "$write_doc_root" '(( [.playbook.requires[] | select(.plugin=="write-doc" and .marketplace=="write-doc") ] | length)==1) and (.deps["write-doc"].root==$root) and (.deps["write-doc"].source_kind=="dev-map")' >/dev/null && ok "${label}はwrite-doc playbook packageを公開契約で解決する" || ng "${label}のwrite-doc依存"
   else
     ng "${label}の公開依存解決"
   fi
 done
-echo "  Then manifest identityとskill名だけを依存契約として検査する"
-mv "$cleanup_root/.codex-plugin/plugin.json" "$TMP/write-doc-cleanup-plugin.json"
-printf '%s\n' '{"name":"wrong-cleanup","version":"0.1.0"}' > "$cleanup_root/.codex-plugin/plugin.json"
+echo "  Then 公開packageのmanifest identityと同梱skillを依存契約として検査する"
+mv "$write_doc_root/.codex-plugin/plugin.json" "$TMP/write-doc-plugin.json"
+printf '%s\n' '{"name":"wrong-write-doc","version":"0.6.0","skills":["./skills/remove-intermediate-artifacts"]}' > "$write_doc_root/.codex-plugin/plugin.json"
 if HARNESS_PLUGIN_RUNTIME=codex HARNESS_PLUGIN_DEV_ROOTS="$TMP/write-doc-dev-map.json" HARNESS_PLUGIN_CACHE_ROOT="$TMP/empty-cache" bash "$NORTH_ROOT/scripts/resolve.sh" "$TMP" > "$TMP/north-invalid-cleanup.yml" 2> "$TMP/north-invalid-cleanup.err"; then
-  ng "不正なwrite-doc-cleanupのmanifestを拒否する"
+  ng "不正なwrite-doc packageのmanifestを拒否する"
 else
-  ok "不正なwrite-doc-cleanupのmanifestをNGとして集計する"
+  ok "不正なwrite-doc packageのmanifestをNGとして集計する"
 fi
-mv "$TMP/write-doc-cleanup-plugin.json" "$cleanup_root/.codex-plugin/plugin.json"
+mv "$TMP/write-doc-plugin.json" "$write_doc_root/.codex-plugin/plugin.json"
 
 echo "Scenario: product repositoryには電子チケットの業界課題とHTML作例だけを置く"
 echo "  Given ドメイン・データモデリングの題材をBDD repositoryへ分離した"
