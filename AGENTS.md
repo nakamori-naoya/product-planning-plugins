@@ -1,3 +1,3 @@
 # AGENTS.md
 
-このrepositoryはProduct North StarとProduct Strategyの立案・反証を扱うmarketplaceである。`write-doc`と`grill`は同梱せず、marketplace名とplugin名で外部依存を解決する。依存versionは固定せず、解決先に必要なskillが存在することを検査する。変更後は`bash scripts/validate.sh`を実行する。
+このrepositoryはProduct North StarとProduct Strategyの立案・反証を扱うmarketplaceである。marketplaceへ公開するインストール対象は`product-planning` playbook packageだけにし、個々のplaybookと下段skillを別entryへ公開しない。`write-doc`と`grill`は同梱せず、別repositoryにはそのrepositoryが公開するplaybook packageだけで依存する。外部packageの内部skill名へ依存せず、依存versionは固定せず、解決先に必要なskillが存在することを検査する。変更後は`bash scripts/validate.sh`を実行する。

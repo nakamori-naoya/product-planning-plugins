@@ -8,8 +8,8 @@ jq -e '
   .requirements.no_strategy_output==true and
   .document_type=="north-star" and
   .output_format=="markdown" and
-  [.requires[].plugin]==["grill","product-north-star","write-doc","write-doc-cleanup"] and
-  [.requires[].marketplace]==["grill","product-planning","write-doc","write-doc"] and
+  [.requires[].plugin]==["grill","product-north-star","write-doc"] and
+  [.requires[].marketplace]==["grill","product-planning","write-doc"] and
   .contract.cleanup.delete_after_document==["candidate_product_north_star_path","product_north_star_path"] and
   .contract.cleanup.preserve==["product_north_star_document_path"] and
   [.steps[].id]==["settle-north-star","define-north-star","verify","document","cleanup"] and

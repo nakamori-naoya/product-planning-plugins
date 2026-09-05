@@ -11,9 +11,9 @@ Product North Starを定義し、そこからRumelt型Product Strategyを立案�
 - North Starはあるが、どの課題へ集中するか決まっていない
 - 戦略が願望や施策一覧になっていないか独立して反証したい
 
-## どのpluginを使うか
+## どの機能を使うか
 
-| 今の状況 | 選ぶplugin |
+| 今の状況 | 選ぶ機能 |
 |---|---|
 | 現在地の証拠を事実・仮説・未確認事項へ分けたい | `product-context` |
 | 長期の価値ある未来と判断原則だけを定義したい | `product-north-star` |
@@ -47,12 +47,7 @@ Codexのpluginコマンドには`--scope`がない。通常の手順はuser単�
 
 ```bash
 codex plugin marketplace add nakamori-naoya/product-planning-plugins
-codex plugin add product-context@product-planning
-codex plugin add product-north-star@product-planning
-codex plugin add product-strategy@product-planning
-codex plugin add strategy-critique@product-planning
-codex plugin add product-north-star-planning@product-planning
-codex plugin add product-strategy-planning@product-planning
+codex plugin add product-planning@product-planning
 ```
 
 このrepositoryだけに分離したい場合は、repository専用の`CODEX_HOME`を作り、インストール時と利用時に同じ値を指定する。
@@ -62,12 +57,7 @@ mkdir -p .codex-home
 export CODEX_HOME="$PWD/.codex-home"
 
 codex plugin marketplace add nakamori-naoya/product-planning-plugins
-codex plugin add product-context@product-planning
-codex plugin add product-north-star@product-planning
-codex plugin add product-strategy@product-planning
-codex plugin add strategy-critique@product-planning
-codex plugin add product-north-star-planning@product-planning
-codex plugin add product-strategy-planning@product-planning
+codex plugin add product-planning@product-planning
 codex
 ```
 
@@ -89,13 +79,10 @@ repository設定としてインストールする場合は`project`を指定す�
 CLAUDE_PLUGIN_SCOPE=project
 
 claude plugin marketplace add nakamori-naoya/product-planning-plugins --scope "$CLAUDE_PLUGIN_SCOPE"
-claude plugin install product-context@product-planning --scope "$CLAUDE_PLUGIN_SCOPE"
-claude plugin install product-north-star@product-planning --scope "$CLAUDE_PLUGIN_SCOPE"
-claude plugin install product-strategy@product-planning --scope "$CLAUDE_PLUGIN_SCOPE"
-claude plugin install strategy-critique@product-planning --scope "$CLAUDE_PLUGIN_SCOPE"
-claude plugin install product-north-star-planning@product-planning --scope "$CLAUDE_PLUGIN_SCOPE"
-claude plugin install product-strategy-planning@product-planning --scope "$CLAUDE_PLUGIN_SCOPE"
+claude plugin install product-planning@product-planning --scope "$CLAUDE_PLUGIN_SCOPE"
 ```
+
+利用者がインストールするのはこのpackageだけである。2つのplanning playbookと4つの下段機能は同梱し、内部機能を個別のインストール対象にはしない。
 
 ## インストール済みである必要があるplugin
 
@@ -103,9 +90,8 @@ claude plugin install product-strategy-planning@product-planning --scope "$CLAUD
 
 - `grill@grill`
 - `write-doc@write-doc`
-- `write-doc-cleanup@write-doc`
 
-playbookの依存は`plugin@marketplace`のidentityだけを宣言し、versionは固定しない。開発用map、同じrepository、runtimeのinstall cacheの順に候補を調べ、解決したmanifestのidentityと必要なskillを検査する。
+別repositoryへの依存は公開playbook packageの`plugin@marketplace`だけを宣言し、内部機能名へ依存しない。versionは固定せず、開発用map、同じrepository、runtimeのinstall cacheの順に候補を調べ、解決したmanifestのidentityと必要なskillを検査する。
 
 ## 設定の上書きと優先順位
 

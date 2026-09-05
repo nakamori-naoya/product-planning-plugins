@@ -4,7 +4,7 @@
 
 ## 必要なplugin
 
-`product-context@product-planning`、`grill@grill`、`product-strategy@product-planning`、`strategy-critique@product-planning`、`write-doc@write-doc`、`write-doc-cleanup@write-doc`。versionは固定せず、解決先のmanifest identityと必要なskillまたはplaybookを検査する。
+同じpackage内の`product-context`、`product-strategy`、`strategy-critique`と、外部の`grill@grill`、`write-doc@write-doc`に依存する。別repositoryには公開playbook packageだけで依存し、その内部機能名へは依存しない。versionは固定せず、解決先のmanifest identityと必要なskillまたはplaybookを検査する。
 
 ## 入力と出力
 

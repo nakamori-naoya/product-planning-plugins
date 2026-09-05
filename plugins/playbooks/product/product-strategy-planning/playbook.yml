@@ -16,7 +16,6 @@ requires:
   - {plugin: product-strategy, marketplace: product-planning}
   - {plugin: strategy-critique, marketplace: product-planning}
   - {plugin: write-doc, marketplace: write-doc}
-  - {plugin: write-doc-cleanup, marketplace: write-doc}
 
 contract:
   north_star_sections: [対象, 望む状態, 約束する価値, プロダクトの役割, 判断原則, やらないこと, 根拠と仮説, 見直し条件, 未決]
