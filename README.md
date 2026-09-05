@@ -2,6 +2,43 @@
 
 Product North Starを定義し、そこからRumelt型Product Strategyを立案・独立反証するClaude Code/Codex両対応marketplaceである。電子チケット題材のHTML作例を`docs/exercises/product-planning`に含む。
 
+## こんなときに使う
+
+**プロダクトの長期的な価値と、現在地からそこへ進む方針を分けて決めたいときに使う。** 機能一覧やロードマップを先に作らず、誰にどんな未来を実現するか、何が現在の障壁か、どこへ資源を集中するかを順番に明確にする。
+
+- チームごとにプロダクトの目的や優先順位が違う
+- 目標はあるが、現在地を裏付ける事実と仮説が混ざっている
+- North Starはあるが、どの課題へ集中するか決まっていない
+- 戦略が願望や施策一覧になっていないか独立して反証したい
+
+## どのpluginを使うか
+
+| 今の状況 | 選ぶplugin |
+|---|---|
+| 現在地の証拠を事実・仮説・未確認事項へ分けたい | `product-context` |
+| 長期の価値ある未来と判断原則だけを定義したい | `product-north-star` |
+| 対話で判断を確かめながらNorth Star資料まで完成させたい | `product-north-star-planning` |
+| 確定したNorth Starから戦略を組み立てたい | `product-strategy` |
+| 対話と資料化を含め、戦略資料まで完成させたい | `product-strategy-planning` |
+| 既存戦略を変更せず、弱点を判定したい | `strategy-critique` |
+
+North StarとStrategyは一つの資料へ混ぜない。North Starは長期の判断基準であり、Strategyは現在地の診断、基本方針、一貫した行動を結ぶ期間依存の選択である。
+
+## 代表的な利用の流れ
+
+1. `product-context`で現在地の証拠を分ける。
+2. `product-north-star-planning`で長期の価値と非目標を決める。
+3. `product-strategy-planning`で最重要課題、基本方針、行動を結ぶ。
+4. `strategy-critique`で根拠、集中、整合性を独立して反証する。
+
+```text
+顧客調査と既存KPIから現在地を整理し、Product North Starを対話で決めて資料にして。
+```
+
+```text
+既存North Starを変えずにProduct Strategyを作り、別観点で反証して。
+```
+
 ## インストール
 
 ### Codex
