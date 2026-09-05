@@ -27,7 +27,7 @@ fi
 <!-- BEGIN shared:skill-entry/config-load -->
 ```bash
 CFG_FILE=$(bash "${PLUGIN_ROOT}/scripts/prepare.sh" "$(pwd)") || exit 2
-trap 'rm -f "$CFG_FILE"' EXIT
+printf '%s\n' "$CFG_FILE"
 ```
 
 **このコマンドは説明例ではない。必ず実行する。** 解決済みYAMLが空なら先へ進まない。設定ファイルを直接読んで代用しない。
@@ -46,3 +46,9 @@ grillを必ず実行し、受益者、望む未来、約束する価値、プロ
 North Star成果物を保存した後、検査工程で必須節、空欄、節の順序、戦略カーネルや行動計画の混入を検査する。検査済み成果物だけを`write-doc`へ渡し、`${.playbook.document_type}`と`${.playbook.output_format}`を指定して資料を保存する。最終資料の存在を確認してから、`${.playbook.contract.cleanup}`で削除候補にした作業用成果物だけを後片付けし、保持対象は残す。
 
 最終資料の保存先、North Starの一文、重要な判断原則と非目標、根拠・仮説・未決、見直し条件を報告する。資料が保存されるまで完了にしない。Product Strategyは作らない。
+
+## 実行設定の寿命
+
+prepareが返した絶対pathを実行記録へ保持する。別shellではそのpathを`CFG_FILE`へ明示して読み、shell変数の継承を前提にしない。完了時と失敗停止時のどちらも、最後の設定利用後に`python3 "${PLUGIN_ROOT}/scripts/run-config.py" cleanup --config "$CFG_FILE"`を実行する。他runの設定やdirectoryを削除しない。
+
+条件付き工程を含め、各工程を呼ぶ直前に`yq -o=json '.' "$CFG_FILE" | python3 "${PLUGIN_ROOT}/scripts/resolve-dependency.py" --check-steps <工程id>`を実行する。失敗時は工程を実行せず停止する。

@@ -2,7 +2,7 @@
   "name": "strategy-critique",
   "version": "0.2.3",
   "description": "プロダクト戦略を編集せず反証し合格または要修正で判定する",
-  "skills": "./skills",
+  "skills": "./",
   "author": {
     "name": "NaoyaNakamori"
   },
@@ -16,5 +16,10 @@
       "Skills"
     ],
     "defaultPrompt": "strategy-critiqueを使ってこの作業を進めてください。"
+  },
+  "metadata": {
+    "harness": {
+      "contractVersion": 1
+    }
   }
 }
