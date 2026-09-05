@@ -27,7 +27,7 @@ fi
 <!-- BEGIN shared:skill-entry/config-load -->
 ```bash
 CFG_FILE=$(bash "${PLUGIN_ROOT}/scripts/prepare.sh" "$(pwd)") || exit 2
-trap 'rm -f "$CFG_FILE"' EXIT
+printf '%s\n' "$CFG_FILE"
 ```
 
 **このコマンドは説明例ではない。必ず実行する。** 解決済みYAMLが空なら先へ進まない。設定ファイルを直接読んで代用しない。
@@ -48,3 +48,9 @@ Product StrategyをRumeltの診断・基本方針・一貫した行動の三つ�
 可能なら作成時と別の文脈で反証する。同じ文脈なら制約を明記する。最終検査でNorth Starのハッシュ値と判定を再確認し、`要修正`なら停止する。`合格`の検証済み戦略だけを`write-doc`へ渡し、`${.playbook.document_type}`と`${.playbook.output_format}`を指定して資料を保存する。最終資料の存在を確認してから、`${.playbook.contract.cleanup}`で削除候補にした現在地、戦略候補、批評、検証用成果物だけを後片付けし、入力したNorth Starと最終資料は残す。
 
 最終資料、現在地、反証結果の保存先、判定、主要な選択、未決、方針を見直す条件を報告する。資料が保存されるまで完了にしない。
+
+## 実行設定の寿命
+
+prepareが返した絶対pathを実行記録へ保持する。別shellではそのpathを`CFG_FILE`へ明示して読み、shell変数の継承を前提にしない。完了時と失敗停止時のどちらも、最後の設定利用後に`python3 "${PLUGIN_ROOT}/scripts/run-config.py" cleanup --config "$CFG_FILE"`を実行する。他runの設定やdirectoryを削除しない。
+
+条件付き工程を含め、各工程を呼ぶ直前に`yq -o=json '.' "$CFG_FILE" | python3 "${PLUGIN_ROOT}/scripts/resolve-dependency.py" --check-steps <工程id>`を実行する。失敗時は工程を実行せず停止する。

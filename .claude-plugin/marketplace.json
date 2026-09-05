@@ -1,3 +1,15 @@
-{"name":"product-planning","owner":{"name":"NaoyaNakamori"},"description":"Product North StarとProduct Strategyを一つのPlaybookパッケージとして配布するmarketplace","plugins":[
-  {"name":"product-planning","source":"./plugins","description":"North StarとStrategyの立案・反証Playbookを一括提供する","version":"1.0.0"}
-]}
+{
+  "name": "product-planning",
+  "owner": {
+    "name": "NaoyaNakamori"
+  },
+  "description": "Product North StarとProduct Strategyを一つのPlaybookパッケージとして配布するmarketplace",
+  "plugins": [
+    {
+      "name": "product-planning",
+      "source": "./plugins",
+      "description": "North StarとStrategyの立案・反証Playbookを一括提供する",
+      "version": "2.0.0"
+    }
+  ]
+}

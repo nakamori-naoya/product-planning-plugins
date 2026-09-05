@@ -1,8 +1,10 @@
 {
   "name": "product-planning",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Product North StarとProduct Strategyの立案・反証Playbookを一括提供する",
-  "author": {"name": "NaoyaNakamori"},
+  "author": {
+    "name": "NaoyaNakamori"
+  },
   "skills": [
     "./playbooks/product/product-north-star-planning",
     "./playbooks/product/product-strategy-planning",
@@ -13,7 +15,9 @@
   ],
   "interface": {
     "displayName": "Playbook Package",
-    "capabilities": ["Skills"]
+    "capabilities": [
+      "Skills"
+    ]
   },
   "metadata": {
     "harness": {
@@ -27,7 +31,8 @@
         "product-north-star": "./skills/product/product-north-star",
         "product-strategy": "./skills/product/product-strategy",
         "strategy-critique": "./skills/product/strategy-critique"
-      }
+      },
+      "contractVersion": 1
     }
   }
 }

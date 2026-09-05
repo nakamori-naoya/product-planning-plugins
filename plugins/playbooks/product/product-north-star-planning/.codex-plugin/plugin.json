@@ -2,7 +2,7 @@
   "name": "product-north-star-planning",
   "version": "0.3.2",
   "description": "対話で価値判断を確かめ、戦略へ越境しないProduct North Star資料を保存する",
-  "skills": "./skills",
+  "skills": "./",
   "author": {
     "name": "NaoyaNakamori"
   },
@@ -16,5 +16,10 @@
       "Skills"
     ],
     "defaultPrompt": "product-north-star-planningを使ってこの作業を進めてください。"
+  },
+  "metadata": {
+    "harness": {
+      "contractVersion": 1
+    }
   }
 }
