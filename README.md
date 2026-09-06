@@ -17,15 +17,16 @@ Product North Starを定義し、そこからRumelt型Product Strategyを立案�
 
 | 今の状況 | 公開入口 |
 |---|---|
+| 対話で判断を確かめながらNorth Star資料まで完成させたい | `set-product-north-star` |
+| 対話と資料化を含め、戦略資料まで完成させたい | `set-product-strategy` |
 
 North StarとStrategyは一つの資料へ混ぜない。North Starは長期の判断基準であり、Strategyは現在地の診断、基本方針、一貫した行動を結ぶ期間依存の選択である。
-
 
 ## 代表的な利用の流れ
 
 1. 顧客調査や現在の指標など、判断の材料を用意する。
-2. `product-north-star-planning`で長期の価値と対象外の範囲を決める。
-3. `product-strategy-planning`で現在の課題から戦略を作り、反証と資料化まで進める。
+2. `set-product-north-star`で長期の価値と対象外の範囲を決める。
+3. `set-product-strategy`で現在の課題から戦略を作り、反証と資料化まで進める。
 
 ```text
 顧客調査と既存KPIから現在地を整理し、Product North Starを対話で決めて資料にして。
