@@ -12,18 +12,25 @@ jq -e '
   [.requires[].marketplace]==["grill","product-planning","write-doc"] and
   .contract.cleanup.delete_after_document==["candidate_product_north_star_path","product_north_star_path"] and
   .contract.cleanup.preserve==["product_north_star_document_path"] and
-  [.steps[].id]==["settle-north-star","define-north-star","verify","document","cleanup"] and
-  [.steps[] | (.skill // .script // .playbook)]==["grill","define-product-north-star","scripts/verify.py","write-doc","remove-intermediate-artifacts"] and
-  .steps[0].provides==["north_star_evidence","decisions","unresolved"] and
-  .steps[1].needs==["north_star_evidence","decisions","unresolved"] and
-  .steps[1].provides==["candidate_product_north_star_path"] and
-  .steps[2].needs==["candidate_product_north_star_path"] and
-  .steps[2].provides==["product_north_star_path"] and
-  .steps[3].needs==["product_north_star_path"] and
-  .steps[3].provides==["product_north_star_document_path"] and
-  .steps[4].needs==["candidate_product_north_star_path","product_north_star_path","product_north_star_document_path"] and
-  .steps[4].provides==["cleanup_report"]
+  [.steps[].id]==["settle-north-star","ground-north-star","define-north-star","verify","document","cleanup"] and
+  [.steps[] | (.skill // .script // .playbook)]==["grill","scripts/ground.py","define-product-north-star","scripts/verify.py","write-doc","scripts/cleanup.py"] and
+  ([.steps[] | select(has("skill")) | .skill]==["define-product-north-star"]) and
+  ([.steps[] | select(has("playbook")) | .playbook]==["grill","write-doc"]) and
+  ([.steps[] | select(has("plugin"))]|length)==0 and
+  .steps[0].provides==["decisions","open_questions"] and
+  (.steps[0]|has("input")|not) and
+  .steps[1].needs==["decisions","open_questions"] and
+  .steps[1].provides==["north_star_evidence"] and
+  .steps[2].needs==["north_star_evidence"] and
+  .steps[2].provides==["candidate_product_north_star_path"] and
+  .steps[3].needs==["candidate_product_north_star_path"] and
+  .steps[3].provides==["product_north_star_path"] and
+  .steps[4].needs==["product_north_star_path"] and
+  .steps[4].provides==["product_north_star_document_path"] and
+  .steps[4].input=={"document_type":"${.document_type}"} and
+  .steps[5].needs==["candidate_product_north_star_path","product_north_star_path","product_north_star_document_path"] and
+  .steps[5].provides==["cleanup_report"]
 ' "$file" >/dev/null || {
-  echo "[error] product-north-star-planningはgrill→north-star→verify→write-doc→中間生成物の後片付けという契約を変えられない" >&2
+  echo "[error] product-north-star-planningはgrill→根拠づけ→north-star→verify→write-doc→自分の中間生成物の後片付けという契約を変えられない" >&2
   exit 2
 }

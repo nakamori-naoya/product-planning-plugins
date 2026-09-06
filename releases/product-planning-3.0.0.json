@@ -1,0 +1,31 @@
+{
+  "schema": 1,
+  "plugin": "product-planning",
+  "version": "3.0.0",
+  "created_at": "2026-09-06T17:58:53.846695+00:00",
+  "notes": "外部依存grill/grillとwrite-doc/write-docをrequires宣言とplaybook:工程へ統一し、grill工程と自前のground工程を分離する。runtime正本shared/runtime-sourceを2.4.1へ更新し7repoへ同期する。",
+  "breaking": "外部依存をrequires: [{plugin, marketplace}]宣言とsteps[].playbook:へ統一し、外部skillの直呼びと内部名の直接記述を全廃した。settle-*工程(grill)とground-*工程(自前のground.py)を分離し、grill出力が契約を満たさない場合(契約IDや版の不一致、status != completed、rationaleの無い決定、open/withdrawn以外の状態)は束ねずに停止する。write-docへの保存依頼でoutput_directoryを必須の対から任意へ変え、nameとupdate_targetを排他の必須にした。外部依存の参照形を.root直下3点と.entryの2形に限定し、${.deps.<論理名>.skills.<名前>}を禁止した。束縛lockにbindingsのsnapshotが増えたため旧schemaのlockは非互換である。metadata.harnessにmarketplaceとimplementsを追加し、宣言の無いpluginへは束縛できないようにした。runtime正本shared/runtime-sourceをversion 2.4.1へ更新し、resolver/lint/doctor/release.py/sync-runtime.pyの変更を他6repoへ波及させた。CIの兄弟checkoutを、PR headと同名branchがあればそれを、無ければmainを見る形へ改めた。",
+  "migration": "playbook.ymlの外部依存をrequires宣言へ移し、工程はsteps[].playbook: grillおよびwrite-docで呼ぶ。依存参照は${.deps.<論理名>.entry}と.root直下3点だけを使い、${.deps.<論理名>.skills.<名前>}は書き換える。grillの出力をそのまま次工程へ渡さず、ground.pyで契約を検査してからgrounded_inputを作る。write-docへの保存依頼は新規ならname、差し替えならupdate_targetを渡し、output_directoryは必要なときだけ添える。output_directory単独はexit 2になる。実行中のrunが持つ旧schemaのlockは--bindings=<lock>へ渡さず、入口が作り直す。この repoのshared/runtime-sourceを直したときはsync-runtime.pyで7repoすべてへ同期し、各repoのvalidate.shで一致を確かめる。",
+  "checks": {
+    "codex": {
+      "status": "manifest-and-contract-tests-passed",
+      "native-client-installation": "not-executed",
+      "evidence": "HARNESS_PLUGIN_RUNTIME=codex を含む bash scripts/validate.sh: 配布構造・公開manifest・解決・負の試験・消費側契約lintを検査"
+    },
+    "claude": {
+      "status": "manifest-and-contract-tests-passed",
+      "native-client-installation": "not-executed",
+      "evidence": "HARNESS_PLUGIN_RUNTIME=claude を含む bash scripts/validate.sh: 配布構造・公開manifest・解決・負の試験・消費側契約lintを検査"
+    },
+    "real-distribution": "fixtureだけで緑にせず、兄弟checkoutの実配布物 plugins/ を installed-cache へ写して解決させた",
+    "consumer-contract-lint": "scripts/lint-consumer-contract.py: codex / claude 両runtimeで 0 finding",
+    "binding": "契約IDと版で束縛し、bindings snapshot を持つ lock を入口が作り直すところまで通した",
+    "post-version-validation": "bash scripts/validate.sh: passed (exit 0)"
+  },
+  "files": [
+    ".agents/plugins/marketplace.json",
+    "plugins/.codex-plugin/plugin.json",
+    ".claude-plugin/marketplace.json",
+    "plugins/.claude-plugin/plugin.json"
+  ]
+}

@@ -112,7 +112,9 @@ marketplaceの取得と、インストール済みパッケージの更新は分
 - `grill@grill`
 - `write-doc@write-doc`
 
-別repositoryへの依存は公開playbook packageの`plugin@marketplace`だけを宣言し、内部機能名へ依存しない。versionは固定せず、開発用map、同じrepository、runtimeのinstall cacheの順に候補を調べ、解決したmanifestのidentityと必要なskillを検査する。
+別repositoryへの依存は公開playbook packageの`plugin@marketplace`だけを宣言し、`playbook:`の工程として呼ぶ。内部機能名へ依存しない。versionは固定せず、開発用map、同じrepository、runtimeのinstall cacheの順に候補を調べ、解決したmanifestのidentityと自己宣言した契約（`metadata.harness.implements`）を検査する。
+
+差し替えたい場合は`~/.config/harness-plugins/dependencies.yml`（利用者ごと）、`<repo>/.harness-plugins/dependencies.yml`（repositoryごと）、`<repo>/.harness-plugins/scopes/<入口playbook>/dependencies.yml`（入口ごと）で、契約ID（`grill/grill`、`write-doc/write-doc`）に`{plugin, marketplace}`を束縛する。playbookの`requires`は変えない。
 
 ## 設定の上書きと優先順位
 
