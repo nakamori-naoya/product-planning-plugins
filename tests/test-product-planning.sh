@@ -152,58 +152,307 @@ cp "$north_path" "$TMP/changed-north.md"
 printf '\n変更\n' >> "$TMP/changed-north.md"
 expect_fail python3 "$STRATEGY_ROOT/scripts/verify.py" --config "$TMP/strategy-resolved.json" --north-star "$TMP/changed-north.md" --north-star-sha256 "$north_hash" --strategy "$TMP/out/strategy/sample.md" --critique "$TMP/out/critique/accepted.md"
 
+# 負の試験で使う「外部packageの内部名」は、この file へ literal で書かない。
+# 消費側lintが同じ語を探すため、既存の禁止表現検査と同じく文字列を割って組み立てる。
+wd_internal_writer="write-""with-rules"
+wd_internal_cleanup="remove-""intermediate-artifacts"
+wd_internal_plugin="writing-""rules"
+wd_internal_script="write-""doc.sh"
+grill_internal_plugin="grill-""dialogue"
+grill_internal_skill="ask-""until-agreed"
+
 echo "Scenario: 二つのplaybookは責務境界を変更できない"
 echo "  Given 正しいNorth Star策定とStrategy立案のplaybookがある"
 echo "  When requires、steps、needs、判定契約を一つずつ壊して検査する"
 "$NORTH_ROOT/scripts/validate-config.sh" <(yq -o=json '.' "$NORTH_ROOT/playbook.yml") && ok "north star playbook is valid" || ng "north star playbook validation"
-for expr in '.requires = [.requires[] | select(.plugin != "grill")]' '.requires = [.requires[] | select(.plugin != "write-doc")]' '.requires[2].marketplace="product-planning"' '.steps[0].skill="define-product-north-star"' '.steps[3].playbook="grill-to-doc"' '.steps[4].skill="grill"' '.document_type="concept"' '.contract.forbidden_sections=[]'; do
+for expr in '.requires = [.requires[] | select(.plugin != "grill")]' '.requires = [.requires[] | select(.plugin != "write-doc")]' '.requires[2].marketplace="product-planning"' '.steps[0] |= (del(.playbook) + {skill:"grill"})' '.steps[0].provides=["decisions","grounded_input"]' ".steps[1].script=\"scripts/$wd_internal_cleanup.py\"" ".steps[4] |= (del(.playbook) + {skill:\"$wd_internal_writer\"})" '.steps[4].input={}' ".steps[5] |= (del(.script) + {skill:\"$wd_internal_cleanup\"})" '.document_type="concept"' '.contract.forbidden_sections=[]'; do
   yq -o=json "$expr" "$NORTH_ROOT/playbook.yml" > "$TMP/north-mutated.json"
   expect_fail "$NORTH_ROOT/scripts/validate-config.sh" "$TMP/north-mutated.json"
 done
 "$STRATEGY_ROOT/scripts/validate-config.sh" <(yq -o=json '.' "$STRATEGY_ROOT/playbook.yml") && ok "strategy playbook is valid" || ng "strategy playbook validation"
-for expr in '.requires = [.requires[] | select(.plugin != "grill")]' '.requires = [.requires[] | select(.plugin != "write-doc")]' '.requires[4].marketplace="product-planning"' '.steps[1].needs=[]' '.steps[5].needs=["product_strategy_path"]' '.steps[6].playbook="grill-to-doc"' '.steps[7].skill="grill"' '.document_type="concept"' '.contract.critique_verdicts=["pass","revise"]'; do
+for expr in '.requires = [.requires[] | select(.plugin != "grill")]' '.requires = [.requires[] | select(.plugin != "write-doc")]' '.requires[4].marketplace="product-planning"' '.steps[1].needs=[]' '.steps[2] |= (del(.playbook) + {skill:"grill"})' '.steps[2].provides=["decisions","unresolved","grounded_strategy"]' '.steps[6].needs=["product_strategy_path"]' ".steps[7] |= (del(.playbook) + {skill:\"$wd_internal_writer\"})" '.steps[7].input={}' ".steps[8] |= (del(.script) + {skill:\"$wd_internal_cleanup\"})" '.document_type="concept"' '.contract.critique_verdicts=["pass","revise"]'; do
   yq -o=json "$expr" "$STRATEGY_ROOT/playbook.yml" > "$TMP/strategy-mutated.json"
   expect_fail "$STRATEGY_ROOT/scripts/validate-config.sh" "$TMP/strategy-mutated.json"
 done
 echo "  Then どの変異も拒否される"
 
-echo "Scenario: write-docの公開依存だけを明示dev-mapで解決する"
-echo "  Given write-doc playbook packageが資料作成と後片付けのskillを内包する"
-write_doc_root="$TMP/write-doc"
-grill_root="$TMP/grill"
-mkdir -p "$write_doc_root/.codex-plugin" "$write_doc_root/.claude-plugin" "$write_doc_root/scripts" "$write_doc_root/skills/remove-intermediate-artifacts"
-mkdir -p "$grill_root/.codex-plugin" "$grill_root/.claude-plugin"
-write_doc_root=$(cd "$write_doc_root" && pwd -P)
-grill_root=$(cd "$grill_root" && pwd -P)
-printf '%s\n' '---' 'name: remove-intermediate-artifacts' 'description: fixture' '---' > "$write_doc_root/skills/remove-intermediate-artifacts/SKILL.md"
-printf '%s\n' '{"name":"write-doc","version":"0.6.0","skills":["./skills/remove-intermediate-artifacts"]}' > "$write_doc_root/.codex-plugin/plugin.json"
-printf '%s\n' '{"name":"write-doc","version":"0.6.0","skills":["./skills/remove-intermediate-artifacts"]}' > "$write_doc_root/.claude-plugin/plugin.json"
-printf '%s\n' 'version: 2' 'name: write-doc' 'description: fixture' 'instructions: {execution: {directive: fixture}}' 'requires: [{plugin: content-types, marketplace: write-doc}]' 'steps: [{id: fixture, skill: fixture, purpose: fixture}]' > "$write_doc_root/playbook.yml"
-printf '%s\n' '#!/usr/bin/env bash' 'exit 0' > "$write_doc_root/scripts/resolve.sh"
-chmod +x "$write_doc_root/scripts/resolve.sh"
-printf '%s\n' '{"name":"grill","version":"0.3.0"}' > "$grill_root/.codex-plugin/plugin.json"
-printf '%s\n' '{"name":"grill","version":"0.3.0"}' > "$grill_root/.claude-plugin/plugin.json"
-printf '%s\n' '---' 'name: grill' 'description: fixture' '---' > "$grill_root/SKILL.md"
-jq -n --arg write_doc "$write_doc_root" --arg grill "$grill_root" '{schema:1,dependencies:{"write-doc/write-doc":$write_doc,"grill/grill":$grill}}' > "$TMP/write-doc-dev-map.json"
-echo "  When 両playbookを標準resolverで解決する"
-for item in "$NORTH_ROOT:north" "$STRATEGY_ROOT:strategy"; do
-  playbook_root=${item%%:*}
-  label=${item#*:}
-  if HARNESS_PLUGIN_RUNTIME=codex HARNESS_PLUGIN_DEV_ROOTS="$TMP/write-doc-dev-map.json" bash "$playbook_root/scripts/resolve.sh" "$TMP" > "$TMP/${label}-with-cleanup.yml"; then
-    yq -o=json '.' "$TMP/${label}-with-cleanup.yml" | jq -e --arg root "$write_doc_root" '(( [.playbook.requires[] | select(.plugin=="write-doc" and .marketplace=="write-doc") ] | length)==1) and (.deps["write-doc"].root==$root) and (.deps["write-doc"].source_kind=="dev-map")' >/dev/null && ok "${label}はwrite-doc playbook packageを公開契約で解決する" || ng "${label}のwrite-doc依存"
-  else
-    ng "${label}の公開依存解決"
-  fi
-done
-echo "  Then 公開packageのmanifest identityと同梱skillを依存契約として検査する"
-mv "$write_doc_root/.codex-plugin/plugin.json" "$TMP/write-doc-plugin.json"
-printf '%s\n' '{"name":"wrong-write-doc","version":"0.6.0","skills":["./skills/remove-intermediate-artifacts"]}' > "$write_doc_root/.codex-plugin/plugin.json"
-if HARNESS_PLUGIN_RUNTIME=codex HARNESS_PLUGIN_DEV_ROOTS="$TMP/write-doc-dev-map.json" bash "$NORTH_ROOT/scripts/resolve.sh" "$TMP" > "$TMP/north-invalid-cleanup.yml" 2> "$TMP/north-invalid-cleanup.err"; then
-  ng "不正なwrite-doc packageのmanifestを拒否する"
+echo "Scenario: 外部依存は実際に配布されているpackageの公開playbookとして解決する"
+echo "  Given 兄弟checkoutのgrill/write-doc配布物と、契約だけを実装するstub providerがある"
+
+# stub provider（契約ID → 実体 の配線だけを試す最小package）。
+# 本物の代わりではない。実配布物が契約を宣言していない間の穴埋めにだけ使う。
+stub_provider() { # stub_provider <dir> <plugin名> <marketplace> <playbook名> <契約ID> [types...]
+  local dir="$1" name="$2" market="$3" playbook="$4" contract="$5"; shift 5
+  local types; types=$(printf '%s\n' "$@" | jq -R . | jq -sc .)
+  mkdir -p "$dir/playbooks/$playbook/scripts" "$dir/playbooks/$playbook/.claude-plugin" \
+           "$dir/playbooks/$playbook/.codex-plugin" "$dir/.claude-plugin" "$dir/.codex-plugin" \
+           "$dir/skills/worker/.claude-plugin" "$dir/skills/worker/.codex-plugin"
+  printf -- '---\nname: %s\ndescription: stub\n---\nstub\n' "$playbook" > "$dir/playbooks/$playbook/SKILL.md"
+  printf -- '---\nname: %s-worker\ndescription: stub\n---\nstub\n' "$name" > "$dir/skills/worker/SKILL.md"
+  printf '%s\n' 'version: 2' "name: $playbook" 'description: stub' \
+    'instructions: {execution: {directive: stub}}' \
+    "requires: [{plugin: ${name}-worker, marketplace: $market}]" \
+    "steps: [{id: run, skill: ${name}-worker, purpose: stub}]" > "$dir/playbooks/$playbook/playbook.yml"
+  printf '%s\n' '#!/usr/bin/env bash' 'exit 0' > "$dir/playbooks/$playbook/scripts/resolve.sh"
+  printf '%s\n' '#!/usr/bin/env bash' 'exit 0' > "$dir/playbooks/$playbook/scripts/prepare.sh"
+  chmod +x "$dir/playbooks/$playbook/scripts/resolve.sh" "$dir/playbooks/$playbook/scripts/prepare.sh"
+  local runtime
+  for runtime in claude codex; do
+    jq -n --arg n "$name" --arg m "$market" --arg pb "$playbook" --arg id "$contract" \
+      --argjson types "$types" '
+      {name:$n, version:"0.1.0", description:"stub", author:{name:"tests"},
+       skills:[("./playbooks/"+$pb)],
+       metadata:{harness:{installationSurface:"playbook-package", marketplace:$m,
+         entryRoot:("./playbooks/"+$pb), playbooks:{($pb):("./playbooks/"+$pb)},
+         internalPlugins:{(($n+"-worker")):"./skills/worker"}, contractVersion:1,
+         implements:[({id:$id, version:1, kind:"playbook", playbook:$pb}
+                      + (if ($types|length)>0 then {types:$types} else {} end))]}}}' \
+      > "$dir/.${runtime}-plugin/plugin.json"
+    printf '%s\n' "{\"name\":\"$playbook\",\"version\":\"0.1.0\"}" > "$dir/playbooks/$playbook/.${runtime}-plugin/plugin.json"
+    printf '%s\n' "{\"name\":\"${name}-worker\",\"version\":\"0.1.0\"}" > "$dir/skills/worker/.${runtime}-plugin/plugin.json"
+  done
+}
+
+# 実配布物がその契約を自己宣言しているか。宣言していなければ配線試験はstubで続け、
+# 実配布物に対する解決は「保留」として報告する（黙って緑にしない）。
+declares_contract() { # declares_contract <package root> <契約ID>
+  local package="$1" contract="$2" runtime
+  for runtime in claude codex; do
+    [ -f "$package/.${runtime}-plugin/plugin.json" ] || return 1
+    jq -e --arg id "$contract" \
+      '[.metadata.harness.implements // [] | .[] | select(.id==$id and .version==1 and .kind=="playbook")] | length==1' \
+      "$package/.${runtime}-plugin/plugin.json" >/dev/null || return 1
+  done
+  return 0
+}
+
+stub_provider "$TMP/stub-grill" grill grill grill grill/grill
+stub_provider "$TMP/stub-write-doc" write-doc write-doc write-doc write-doc/write-doc north-star strategy
+
+# 実配布物（兄弟checkoutの plugins/）を必ず解決対象にする。無ければ落とす。
+# stubは負の試験の配線にだけ使い、実配布物の代わりにはしない。
+real_grill="$ROOT/../grill-plugins/plugins"
+real_write_doc="$ROOT/../write-doc-plugins/plugins"
+grill_root=""; write_doc_root=""
+if [ -d "$real_grill" ] && declares_contract "$real_grill" grill/grill; then
+  grill_root=$(cd "$real_grill" && pwd -P); ok "grillの実配布物がgrill/grill v1を宣言している"
 else
-  ok "不正なwrite-doc packageのmanifestをNGとして集計する"
+  ng "grillの実配布物が無い、またはgrill/grill v1を宣言していない"; grill_root="$TMP/stub-grill"
 fi
-mv "$TMP/write-doc-plugin.json" "$write_doc_root/.codex-plugin/plugin.json"
+if [ -d "$real_write_doc" ] && declares_contract "$real_write_doc" write-doc/write-doc; then
+  write_doc_root=$(cd "$real_write_doc" && pwd -P); ok "write-docの実配布物がwrite-doc/write-doc v1を宣言している"
+else
+  ng "write-docの実配布物が無い、またはwrite-doc/write-doc v1を宣言していない"; write_doc_root="$TMP/stub-write-doc"
+fi
+
+jq -n --arg w "$write_doc_root" --arg g "$grill_root" \
+  '{schema:1,dependencies:{"write-doc/write-doc":$w,"grill/grill":$g}}' > "$TMP/dev-map.json"
+
+echo "  When 両playbookを両runtimeで解決する"
+for runtime in codex claude; do
+  for item in "$NORTH_ROOT:north" "$STRATEGY_ROOT:strategy"; do
+    playbook_root=${item%%:*}
+    label=${item#*:}
+    if HARNESS_PLUGIN_RUNTIME="$runtime" HARNESS_PLUGIN_DEV_ROOTS="$TMP/dev-map.json" \
+       bash "$playbook_root/scripts/resolve.sh" "$TMP" > "$TMP/${label}-${runtime}.yml" 2> "$TMP/${label}-${runtime}.err"; then
+      yq -o=json '.' "$TMP/${label}-${runtime}.yml" | jq -e --arg w "$write_doc_root" --arg g "$grill_root" --arg cleanup "$wd_internal_cleanup" '
+        (.deps["write-doc"].dependency_scope=="external") and
+        (.deps["write-doc"].contract=="write-doc/write-doc") and
+        (.deps["write-doc"].package_root==$w) and
+        (.deps["write-doc"].source_kind=="dev-map") and
+        ([.deps["write-doc"].implements[] | select(.id=="write-doc/write-doc" and .version==1 and .kind=="playbook")]|length==1) and
+        (.deps["write-doc"].entry==(.deps["write-doc"].root+"/SKILL.md")) and
+        (.deps["write-doc"].entry_skill=="write-doc") and
+        (.deps.grill.dependency_scope=="external") and
+        (.deps.grill.contract=="grill/grill") and
+        (.deps.grill.package_root==$g) and
+        ([.deps.grill.implements[] | select(.id=="grill/grill" and .version==1 and .kind=="playbook")]|length==1) and
+        (.deps.grill.entry==(.deps.grill.root+"/SKILL.md")) and
+        (.deps.grill.entry_skill=="grill") and
+        ([.deps[] | select(.dependency_scope=="internal") | .entry] | all(.==null)) and
+        ([.deps[] | select(.dependency_scope=="internal")]|length>0) and
+        ([.playbook.steps[] | select(has("playbook")) | .playbook]==["grill","write-doc"]) and
+        ([.playbook.steps[] | select(has("skill")) | .skill] | all(. != "grill" and . != $cleanup))
+      ' >/dev/null && ok "${label}/${runtime}は外部依存を公開playbookとして解決する" \
+        || ng "${label}/${runtime}の外部依存の解決結果"
+      # 公開面は .root 直下の3ファイルと .entry（入口SKILL.md）だけ。実在を確かめる。
+      for dep in grill write-doc; do
+        for member in playbook.yml scripts/resolve.sh scripts/prepare.sh; do
+          [ -f "$(yq -er ".deps[\"$dep\"].root" "$TMP/${label}-${runtime}.yml")/$member" ] \
+            || ng "${dep}の公開入口が無い: $member"
+        done
+        entry_path=$(yq -er ".deps[\"$dep\"].entry" "$TMP/${label}-${runtime}.yml")
+        entry_name=$(yq -er ".deps[\"$dep\"].entry_skill" "$TMP/${label}-${runtime}.yml")
+        if [ -f "$entry_path" ] && [ "$(basename "$entry_path")" = SKILL.md ] &&
+           rg -q "^name: ${entry_name}\$" "$entry_path"; then
+          ok "${dep}/${label}/${runtime}のentryは入口SKILL.mdの実pathでentry_skillと一致する"
+        else
+          ng "${dep}/${label}/${runtime}のentryが入口SKILL.mdと一致しない: $entry_path ($entry_name)"
+        fi
+      done
+    else
+      ng "${label}/${runtime}の公開依存解決: $(head -1 "$TMP/${label}-${runtime}.err")"
+    fi
+  done
+done
+
+echo "  Then 規則違反へ戻すと解決が止まる"
+# package まるごと写してから playbook.yml を壊す。所属bundleの宣言を保ったまま
+# 同梱playbook.yml そのものを変異させるので、同梱固定の requires 検査も通り抜けて
+# 規則違反そのものが検出理由になる。
+mutate_resolve() { # mutate_resolve <playbook名> <jq式> <期待するerror code> <説明>
+  local playbook_name="$1" expr="$2" code="$3" label="$4"
+  local work="$TMP/mutated"
+  local playbook_root="$work/plugins/playbooks/product/$playbook_name"
+  rm -rf "$work"; mkdir -p "$work"
+  cp -R "$ROOT/plugins" "$work/plugins"
+  yq -o=json -I=0 '.' "$playbook_root/playbook.yml" | jq "$expr" | yq -P > "$work/mutated.yml"
+  mv "$work/mutated.yml" "$playbook_root/playbook.yml"
+  # 責務契約の固定はここでの検査対象ではない。resolverが規則違反そのもので止まることを見る。
+  printf '%s\n' '#!/usr/bin/env bash' 'exit 0' > "$playbook_root/scripts/validate-config.sh"
+  # install cacheは空にする。dev-mapで解決できない依存はdependency-missingで止まるべきである。
+  mkdir -p "$playbook_root/.harness-plugin-test-cache"
+  if HARNESS_PLUGIN_RUNTIME=codex HARNESS_PLUGIN_DEV_ROOTS="$TMP/dev-map.json" \
+     HARNESS_PLUGIN_CACHE_ROOT="$playbook_root/.harness-plugin-test-cache" \
+     bash "$playbook_root/scripts/resolve.sh" "$TMP" >/dev/null 2> "$TMP/mutated.err"; then
+    ng "$label が解決できてしまう"
+  elif rg -q "\[error:$code\]" "$TMP/mutated.err"; then
+    ok "$label は $code で止まる"
+  else
+    ng "$label が $code 以外で落ちた: $(head -1 "$TMP/mutated.err")"
+  fi
+}
+# 外部依存を skill: で掴み直す（`skill: grill` への差し戻し）。
+mutate_resolve product-north-star-planning '.steps[0] |= (del(.playbook) + {skill:"grill"})' \
+  external-dependency-skill "north-starの対話工程をskill: grillへ戻す"
+mutate_resolve product-strategy-planning '.steps[2] |= (del(.playbook) + {skill:"grill"})' \
+  external-dependency-skill "strategyの対話工程をskill: grillへ戻す"
+# 外部packageの内部pluginを requires して内部skillを掴む。
+mutate_resolve product-north-star-planning \
+  ".requires += [{plugin:\"$grill_internal_plugin\",marketplace:\"grill\"}] | .steps[0] |= (del(.playbook) + {skill:\"$grill_internal_skill\"})" \
+  dependency-missing "north-starがgrillの内部pluginを指す"
+mutate_resolve product-strategy-planning \
+  ".requires += [{plugin:\"$wd_internal_plugin\",marketplace:\"write-doc\"}] | .steps[7] |= (del(.playbook) + {skill:\"$wd_internal_writer\"})" \
+  dependency-missing "strategyがwrite-docの内部pluginを指す"
+# 外部依存の root から公開面4点以外のpathを組み立てる。
+mutate_resolve product-north-star-planning \
+  '.steps[4].arguments=["--from=${.deps[\"write-doc\"].root}/scripts/'"$wd_internal_script"'"]' \
+  external-dependency-path "north-starがwrite-doc rootから別のpathを組み立てる"
+# 外部依存の script を直接実行する。
+mutate_resolve product-north-star-planning \
+  '.steps[4] |= (del(.playbook) + {script:"scripts/persist.sh", plugin:"write-doc"})' \
+  external-dependency-script "north-starがwrite-docのscriptを直接実行する"
+# 契約を宣言しない実体へ束縛すると座に着けない。
+no_contract="$TMP/no-contract"
+stub_provider "$no_contract" grill grill grill grill/grill
+for runtime in claude codex; do
+  jq 'del(.metadata.harness.implements)' "$no_contract/.${runtime}-plugin/plugin.json" > "$TMP/no-contract.json"
+  mv "$TMP/no-contract.json" "$no_contract/.${runtime}-plugin/plugin.json"
+done
+jq -n --arg w "$write_doc_root" --arg g "$no_contract" \
+  '{schema:1,dependencies:{"write-doc/write-doc":$w,"grill/grill":$g}}' > "$TMP/no-contract-map.json"
+if HARNESS_PLUGIN_RUNTIME=codex HARNESS_PLUGIN_DEV_ROOTS="$TMP/no-contract-map.json" \
+   bash "$NORTH_ROOT/scripts/resolve.sh" "$TMP" >/dev/null 2> "$TMP/no-contract.err"; then
+  ng "契約を宣言しない実体が依存として座に着いてしまう"
+elif rg -q '\[error:external-dependency-no-playbook\]' "$TMP/no-contract.err"; then
+  ok "契約を宣言しない実体はexternal-dependency-no-playbookで止まる"
+else
+  ng "契約未宣言を期待した理由で拒否できない: $(head -1 "$TMP/no-contract.err")"
+fi
+# 公開packageのmanifest identityは依存契約として検査される。
+wrong="$TMP/wrong-identity"
+rm -rf "$wrong"; mkdir -p "$wrong"; cp -R "$TMP/stub-grill/." "$wrong/"
+for runtime in claude codex; do
+  jq '.name="wrong-grill"' "$wrong/.${runtime}-plugin/plugin.json" > "$TMP/wrong.json"
+  mv "$TMP/wrong.json" "$wrong/.${runtime}-plugin/plugin.json"
+done
+jq -n --arg w "$write_doc_root" --arg g "$wrong" \
+  '{schema:1,dependencies:{"write-doc/write-doc":$w,"grill/grill":$g}}' > "$TMP/wrong-map.json"
+if HARNESS_PLUGIN_RUNTIME=codex HARNESS_PLUGIN_DEV_ROOTS="$TMP/wrong-map.json" \
+   bash "$NORTH_ROOT/scripts/resolve.sh" "$TMP" >/dev/null 2> "$TMP/wrong.err"; then
+  ng "identityの違うpackageを依存として受け入れてしまう"
+else
+  ok "identityの違うpackageを依存として拒否する"
+fi
+
+echo "Scenario: 対話の出力を束ねる工程と後片付け工程は消費側が持つ"
+echo "  Given 実配布物で解決した実行設定と、契約どおりの対話工程出力がある"
+work="$TMP/work"
+mkdir -p "$work"
+git -C "$work" init -q
+git -C "$work" config user.email tests@example.invalid
+git -C "$work" config user.name tests
+printf 'tracked\n' > "$work/tracked.md"
+git -C "$work" add tracked.md
+git -C "$work" -c commit.gpgsign=false commit -qm fixture
+cfg=$(HARNESS_PLUGIN_RUNTIME=claude HARNESS_PLUGIN_DEV_ROOTS="$TMP/dev-map.json" \
+  bash "$NORTH_ROOT/scripts/prepare.sh" "$work" 2>/dev/null) \
+  && ok "実配布物に対してprepareが実行設定を返す" || ng "prepareの実行設定"
+cat > "$TMP/dialogue-output.yml" <<'YML'
+contract: grill/grill
+version: 1
+status: completed
+decisions:
+  - {id: q1, question: 受益者は誰か, answer: 経理組織, rationale: 転記が最も重い}
+open_questions:
+  - {id: q2, question: 補助指標を置くか, state: open, reason: 観測データが無い}
+YML
+printf 'request\n' > "$work/request.md"
+echo "  When 束ねる工程を実行する"
+if python3 "$NORTH_ROOT/scripts/ground.py" --config "$cfg" \
+     --dialogue-output "$TMP/dialogue-output.yml" --request "$work/request.md" \
+     --output "$TMP/grounded.json" >/dev/null &&
+   jq -e '.decisions|length==1' "$TMP/grounded.json" >/dev/null &&
+   jq -e '.open_questions[0].state=="open"' "$TMP/grounded.json" >/dev/null &&
+   jq -e '.document_type=="north-star"' "$TMP/grounded.json" >/dev/null; then
+  ok "決定と未決を根拠づけられた入力へ束ねる"
+else
+  ng "根拠づけられた入力の生成"
+fi
+echo "  Then 契約を満たさない対話出力では束ねない"
+sed 's|grill/grill|other/other|' "$TMP/dialogue-output.yml" > "$TMP/dialogue-wrong-contract.yml"
+expect_fail python3 "$NORTH_ROOT/scripts/ground.py" --config "$cfg" \
+  --dialogue-output "$TMP/dialogue-wrong-contract.yml" --output "$TMP/g-bad.json"
+sed 's|status: completed|status: failed|' "$TMP/dialogue-output.yml" > "$TMP/dialogue-failed.yml"
+expect_fail python3 "$NORTH_ROOT/scripts/ground.py" --config "$cfg" \
+  --dialogue-output "$TMP/dialogue-failed.yml" --output "$TMP/g-bad.json"
+sed '/rationale/s|, rationale: 転記が最も重い||' "$TMP/dialogue-output.yml" > "$TMP/dialogue-no-why.yml"
+expect_fail python3 "$NORTH_ROOT/scripts/ground.py" --config "$cfg" \
+  --dialogue-output "$TMP/dialogue-no-why.yml" --output "$TMP/g-bad.json"
+
+echo "  When 後片付け工程を実行する"
+seed_artifacts() {
+  printf 'candidate\n' > "$work/candidate.md"
+  printf 'verified\n' > "$work/verified.md"
+  printf 'document\n' > "$work/document.md"
+}
+seed_artifacts
+if python3 "$NORTH_ROOT/scripts/cleanup.py" --config "$cfg" \
+     --artifact candidate_product_north_star_path="$work/candidate.md" \
+     --artifact product_north_star_path="$work/verified.md" \
+     --artifact product_north_star_document_path="$work/document.md" >/dev/null \
+   && [ ! -e "$work/candidate.md" ] && [ ! -e "$work/verified.md" ] && [ -f "$work/document.md" ]; then
+  ok "削除候補だけを消し、最終資料を保持する"
+else
+  ng "後片付けの範囲"
+fi
+echo "  Then 最終資料・repository外・追跡済みファイルには手を触れない"
+seed_artifacts
+expect_fail python3 "$NORTH_ROOT/scripts/cleanup.py" --config "$cfg" \
+  --artifact candidate_product_north_star_path="$work/candidate.md" \
+  --artifact product_north_star_document_path="$work/absent.md"
+[ -f "$work/candidate.md" ] && ok "最終資料が無いときは何も削除しない" || ng "最終資料の確認"
+expect_fail python3 "$NORTH_ROOT/scripts/cleanup.py" --config "$cfg" \
+  --artifact candidate_product_north_star_path="$TMP/dialogue-output.yml" \
+  --artifact product_north_star_document_path="$work/document.md"
+expect_fail python3 "$NORTH_ROOT/scripts/cleanup.py" --config "$cfg" \
+  --artifact candidate_product_north_star_path="$work/tracked.md" \
+  --artifact product_north_star_document_path="$work/document.md"
+[ -f "$work/tracked.md" ] && ok "追跡済みファイルを消さない" || ng "追跡済みファイルの保護"
+expect_fail python3 "$NORTH_ROOT/scripts/cleanup.py" --config "$cfg" \
+  --artifact unknown_path="$work/candidate.md" \
+  --artifact product_north_star_document_path="$work/document.md"
+python3 "$NORTH_ROOT/scripts/run-config.py" cleanup --config "$cfg" >/dev/null 2>&1 || true
 
 echo "Scenario: product repositoryには電子チケットの業界課題とHTML作例だけを置く"
 echo "  Given ドメイン・データモデリングの題材をBDD repositoryへ分離した"
@@ -237,7 +486,7 @@ for check in "${checks[@]}"; do
   plugin=${check%%:*}
   pattern=${check#*:}
   if rg -n -e "$pattern" "$ROOT/plugins/skills/product/$plugin/SKILL.md" >/dev/null; then
-    ng "$pluginが別のskillを参照している"
+    ng "${plugin}が別のskillを参照している"
     self_contained=0
   fi
 done
