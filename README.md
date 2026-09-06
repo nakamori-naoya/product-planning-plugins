@@ -11,25 +11,21 @@ Product North Starを定義し、そこからRumelt型Product Strategyを立案�
 - North Starはあるが、どの課題へ集中するか決まっていない
 - 戦略が願望や施策一覧になっていないか独立して反証したい
 
-## どの機能を使うか
+## 公開入口を選ぶ
 
-| 今の状況 | 選ぶ機能 |
+次の入口から依頼します。内部のスキルや処理は、入口が必要に応じて呼び出します。
+
+| 今の状況 | 公開入口 |
 |---|---|
-| 現在地の証拠を事実・仮説・未確認事項へ分けたい | `product-context` |
-| 長期の価値ある未来と判断原則だけを定義したい | `product-north-star` |
-| 対話で判断を確かめながらNorth Star資料まで完成させたい | `product-north-star-planning` |
-| 確定したNorth Starから戦略を組み立てたい | `product-strategy` |
-| 対話と資料化を含め、戦略資料まで完成させたい | `product-strategy-planning` |
-| 既存戦略を変更せず、弱点を判定したい | `strategy-critique` |
 
 North StarとStrategyは一つの資料へ混ぜない。North Starは長期の判断基準であり、Strategyは現在地の診断、基本方針、一貫した行動を結ぶ期間依存の選択である。
 
+
 ## 代表的な利用の流れ
 
-1. `product-context`で現在地の証拠を分ける。
-2. `product-north-star-planning`で長期の価値と非目標を決める。
-3. `product-strategy-planning`で最重要課題、基本方針、行動を結ぶ。
-4. `strategy-critique`で根拠、集中、整合性を独立して反証する。
+1. 顧客調査や現在の指標など、判断の材料を用意する。
+2. `product-north-star-planning`で長期の価値と対象外の範囲を決める。
+3. `product-strategy-planning`で現在の課題から戦略を作り、反証と資料化まで進める。
 
 ```text
 顧客調査と既存KPIから現在地を整理し、Product North Starを対話で決めて資料にして。
@@ -41,48 +37,72 @@ North StarとStrategyは一つの資料へ混ぜない。North Starは長期の�
 
 ## インストール
 
+インストールするのは`product-planning@product-planning`です。外部の工程を実行するため、`grill@grill`、`write-doc@write-doc`も必要です。下のコマンドには、それらも含めています。
+
+内部のスキルは同梱されています。個別にインストールせず、公開入口から利用してください。
+
 ### Codex
 
-Codexのpluginコマンドには`--scope`がない。通常の手順はuser単位でmarketplaceとpluginを登録する。
+利用するCodexと同じ設定環境で実行してください。
 
 ```bash
+codex plugin marketplace add nakamori-naoya/grill-plugins
+codex plugin add grill@grill
+codex plugin marketplace add nakamori-naoya/write-doc-plugins
+codex plugin add write-doc@write-doc
 codex plugin marketplace add nakamori-naoya/product-planning-plugins
 codex plugin add product-planning@product-planning
+codex plugin list
 ```
 
-このrepositoryだけに分離したい場合は、repository専用の`CODEX_HOME`を作り、インストール時と利用時に同じ値を指定する。
-
-```bash
-mkdir -p .codex-home
-export CODEX_HOME="$PWD/.codex-home"
-
-codex plugin marketplace add nakamori-naoya/product-planning-plugins
-codex plugin add product-planning@product-planning
-codex
-```
-
-`CODEX_HOME`には認証、設定、ログ、session、plugin metadataも保存されるため、このdirectoryはGit管理しない。
+一覧で導入先を確認し、新しい会話で利用してください。
 
 ### Claude Code
 
-Claude Codeは次のscopeを選べる。
-
-| scope | 対象 |
-|---|---|
-| `user` | user全体。省略時の既定値 |
-| `project` | このrepositoryで有効にする設定をGitでチーム共有する |
-| `local` | このrepositoryで有効にするが、Git共有せず自分だけで使う |
-
-repository設定としてインストールする場合は`project`を指定する。`CLAUDE_PLUGIN_SCOPE`を`user`または`local`へ変えれば、同じ手順でscopeを切り替えられる。
+次は自分の全プロジェクトで使う例です。このプロジェクトのチームで共有する場合は`project`、このプロジェクトで自分だけが使う場合は`local`に変更し、利用先のディレクトリで実行してください。
 
 ```bash
-CLAUDE_PLUGIN_SCOPE=project
-
+CLAUDE_PLUGIN_SCOPE=user
+claude plugin marketplace add nakamori-naoya/grill-plugins --scope "$CLAUDE_PLUGIN_SCOPE"
+claude plugin install grill@grill --scope "$CLAUDE_PLUGIN_SCOPE"
+claude plugin marketplace add nakamori-naoya/write-doc-plugins --scope "$CLAUDE_PLUGIN_SCOPE"
+claude plugin install write-doc@write-doc --scope "$CLAUDE_PLUGIN_SCOPE"
 claude plugin marketplace add nakamori-naoya/product-planning-plugins --scope "$CLAUDE_PLUGIN_SCOPE"
 claude plugin install product-planning@product-planning --scope "$CLAUDE_PLUGIN_SCOPE"
+claude plugin list
 ```
 
-利用者がインストールするのはこのpackageだけである。2つのplanning playbookと4つの下段機能は同梱し、内部機能を個別のインストール対象にはしない。
+一覧で導入を確認し、Claude Codeを再起動してください。すでに導入しているパッケージは、次の更新手順を使ってください。
+
+## 更新する
+
+GitHubから登録したmarketplaceを更新し、その公開パッケージを更新します。新規インストールと同じCodexの設定環境、Claude Codeの適用範囲を使ってください。
+
+### Codex
+
+```bash
+codex plugin marketplace upgrade product-planning
+codex plugin add product-planning@product-planning
+codex plugin list
+```
+
+更新後は新しい会話で確認してください。ローカルのパスからmarketplaceを登録した場合は、Git版の更新コマンドではなく、その登録先のソースを更新してから追加し直します。
+
+### Claude Code
+
+```bash
+# インストール時に合わせてuser / project / localを選ぶ
+CLAUDE_PLUGIN_SCOPE=user
+claude plugin marketplace update product-planning
+claude plugin update product-planning@product-planning --scope "$CLAUDE_PLUGIN_SCOPE"
+claude plugin list
+```
+
+更新後はClaude Codeを再起動してください。外部の依存パッケージも使っている場合は、それぞれのREADMEの更新手順を実行してください。
+
+marketplaceの取得と、インストール済みパッケージの更新は分けて確認します。同じバージョンとして公開された変更は、更新コマンドだけでは反映されない場合があります。「最新」と表示された場合は公開バージョンを確認し、キャッシュ内のファイルを直接編集しないでください。
+
+コマンドは2026-09-06時点のCLIヘルプと、[Codexのmarketplace管理](https://developers.openai.com/plugins/build/plugins)、[Claude Codeの更新仕様](https://code.claude.com/docs/en/plugins-reference#plugin-update)を確認しています。
 
 ## インストール済みである必要があるplugin
 
