@@ -1,6 +1,6 @@
 {
   "name": "product-planning",
-  "version": "3.0.1",
+  "version": "3.0.2",
   "description": "Product North StarとProduct Strategyの立案・反証Playbookを一括提供する",
   "author": {
     "name": "NaoyaNakamori"

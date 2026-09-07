@@ -9,7 +9,7 @@
       "name": "product-planning",
       "source": "./plugins",
       "description": "North StarとStrategyの立案・反証Playbookを一括提供する",
-      "version": "3.0.1"
+      "version": "3.0.2"
     }
   ]
 }
