@@ -6,7 +6,6 @@ version: 2
 name: product-north-star-planning
 description: 顧客理解と価値仮説から対話的にProduct North Starを作り、成果物境界を検証して資料に保存する
 document_type: north-star
-output_format: markdown
 instructions:
   execution:
     directive: stepsを上から順に実行し、根拠・仮説・決定・未決をNorth Starへ渡し、検証を通るまで完成扱いにしない
@@ -60,7 +59,7 @@ steps:
     input:
       document_type: ${.document_type}
     needs: [product_north_star_path]
-    provides: [product_north_star_document_path]
+    provides: [status, product_north_star_document_path, reason]
 
   - id: cleanup
     script: scripts/cleanup.py
