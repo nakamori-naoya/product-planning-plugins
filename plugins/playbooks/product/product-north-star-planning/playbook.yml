@@ -5,6 +5,7 @@
 version: 2
 name: product-north-star-planning
 description: 顧客理解と価値仮説から対話的にProduct North Starを作り、成果物境界を検証して資料に保存する
+inputs: [user_input, referenced_artifacts, document_destination]
 document_type: north-star
 instructions:
   execution:
@@ -22,7 +23,7 @@ contract:
   forbidden_sections: [診断, 基本方針, 一貫した行動, 資源配分, 行動計画, ロードマップ, 期限つき施策]
   # 後片付けはこのplaybookが所有する成果物だけを対象にする。
   cleanup:
-    delete_after_document: [candidate_product_north_star_path, product_north_star_path]
+    delete_after_document: [candidate_product_north_star_path]
     preserve: [product_north_star_document_path]
 
 requirements:
@@ -33,36 +34,37 @@ steps:
   - id: settle-north-star
     playbook: grill
     purpose: 入力と参照資料だけでは決まらない価値判断を、推奨つきで一問ずつ確かめる
-    provides: [decisions, open_questions]
+    needs: [user_input, referenced_artifacts]
+    provides: [status, decisions, open_questions, reason]
 
   - id: ground-north-star
-    script: scripts/ground.py
-    purpose: 依頼、参照資料、確かめた決定と未決を、北極星づくりの根拠づけられた入力へ束ねる
-    needs: [decisions, open_questions]
+    agent_work: invoking_agent
+    purpose: 同じagentが依頼、参照資料、確かめた決定と未決を読み、根拠・仮説・決定・未決へ区別する
+    needs: [status, decisions, open_questions]
     provides: [north_star_evidence]
 
   - id: define-north-star
-    skill: define-product-north-star
-    purpose: 根拠づけられた入力からProduct North Starを保存する
+    agent_work: invoking_agent
+    purpose: 同じagentが根拠づけられた入力から契約どおりのProduct North Star本文を作り、検査用の一時ファイルへ同じ本文を書く
     needs: [north_star_evidence]
-    provides: [candidate_product_north_star_path]
+    provides: [final_markdown, candidate_product_north_star_path, work_directory]
 
   - id: verify
     script: scripts/verify.py
     purpose: 必須節と空欄を検査し、戦略の節を含まないNorth Starだけを返す
     needs: [candidate_product_north_star_path]
-    provides: [product_north_star_path]
+    provides: [validation_report]
 
   - id: document
     playbook: write-doc
-    purpose: 検査済みNorth Starを読み手向け資料にし、Markdownで保存する
+    purpose: 検査済みNorth Star本文をkind:textのmaterialとし、公開document_destinationから新規または更新の保存先を排他的に組み立ててMarkdownを1本保存する
     input:
       document_type: ${.document_type}
-    needs: [product_north_star_path]
-    provides: [status, product_north_star_document_path, reason]
+    needs: [final_markdown, validation_report, document_destination]
+    provides: [status, path, reason]
 
   - id: cleanup
     script: scripts/cleanup.py
     purpose: 最終資料の保存を確認した後、contract.cleanupで削除候補にした自分の作業用成果物だけを削除し、最終資料を保持する
-    needs: [candidate_product_north_star_path, product_north_star_path, product_north_star_document_path]
+    needs: [work_directory, candidate_product_north_star_path, path]
     provides: [cleanup_report]
