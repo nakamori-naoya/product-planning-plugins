@@ -184,7 +184,9 @@ echo "  Given 兄弟checkoutのgrill/write-doc配布物と、契約だけを実�
 stub_provider() { # stub_provider <dir> <plugin名> <marketplace> <playbook名> <契約ID> [types...]
   local dir="$1" name="$2" market="$3" playbook="$4" contract="$5"; shift 5
   local types; types=$(printf '%s\n' "$@" | jq -R . | jq -sc .)
-  mkdir -p "$dir/playbooks/$playbook/scripts" "$dir/playbooks/$playbook/.claude-plugin" \
+  local contract_version=1
+  [ "$contract" = "write-doc/write-doc" ] && contract_version=2
+  mkdir -p "$dir/playbooks/$playbook/.claude-plugin" \
            "$dir/playbooks/$playbook/.codex-plugin" "$dir/.claude-plugin" "$dir/.codex-plugin" \
            "$dir/skills/worker/.claude-plugin" "$dir/skills/worker/.codex-plugin"
   printf -- '---\nname: %s\ndescription: stub\n---\nstub\n' "$playbook" > "$dir/playbooks/$playbook/SKILL.md"
@@ -193,19 +195,16 @@ stub_provider() { # stub_provider <dir> <plugin名> <marketplace> <playbook名> 
     'instructions: {execution: {directive: stub}}' \
     "requires: [{plugin: ${name}-worker, marketplace: $market}]" \
     "steps: [{id: run, skill: ${name}-worker, purpose: stub}]" > "$dir/playbooks/$playbook/playbook.yml"
-  printf '%s\n' '#!/usr/bin/env bash' 'exit 0' > "$dir/playbooks/$playbook/scripts/resolve.sh"
-  printf '%s\n' '#!/usr/bin/env bash' 'exit 0' > "$dir/playbooks/$playbook/scripts/prepare.sh"
-  chmod +x "$dir/playbooks/$playbook/scripts/resolve.sh" "$dir/playbooks/$playbook/scripts/prepare.sh"
   local runtime
   for runtime in claude codex; do
     jq -n --arg n "$name" --arg m "$market" --arg pb "$playbook" --arg id "$contract" \
-      --argjson types "$types" '
+      --argjson types "$types" --argjson contract_version "$contract_version" '
       {name:$n, version:"0.1.0", description:"stub", author:{name:"tests"},
        skills:[("./playbooks/"+$pb)],
        metadata:{harness:{installationSurface:"playbook-package", marketplace:$m,
          entryRoot:("./playbooks/"+$pb), playbooks:{($pb):("./playbooks/"+$pb)},
-         internalPlugins:{(($n+"-worker")):"./skills/worker"}, contractVersion:1,
-         implements:[({id:$id, version:1, kind:"playbook", playbook:$pb}
+         internalPlugins:{(($n+"-worker")):"./skills/worker"}, contractVersion:$contract_version,
+         implements:[({id:$id, version:$contract_version, kind:"playbook", playbook:$pb}
                       + (if ($types|length)>0 then {types:$types} else {} end))]}}}' \
       > "$dir/.${runtime}-plugin/plugin.json"
     printf '%s\n' "{\"name\":\"$playbook\",\"version\":\"0.1.0\"}" > "$dir/playbooks/$playbook/.${runtime}-plugin/plugin.json"
@@ -217,10 +216,12 @@ stub_provider() { # stub_provider <dir> <plugin名> <marketplace> <playbook名> 
 # 実配布物に対する解決は「保留」として報告する（黙って緑にしない）。
 declares_contract() { # declares_contract <package root> <契約ID>
   local package="$1" contract="$2" runtime
+  local contract_version=1
+  [ "$contract" = "write-doc/write-doc" ] && contract_version=2
   for runtime in claude codex; do
     [ -f "$package/.${runtime}-plugin/plugin.json" ] || return 1
-    jq -e --arg id "$contract" \
-      '[.metadata.harness.implements // [] | .[] | select(.id==$id and .version==1 and .kind=="playbook")] | length==1' \
+    jq -e --arg id "$contract" --argjson contract_version "$contract_version" \
+      '[.metadata.harness.implements // [] | .[] | select(.id==$id and .version==$contract_version and .kind=="playbook")] | length==1' \
       "$package/.${runtime}-plugin/plugin.json" >/dev/null || return 1
   done
   return 0
@@ -240,9 +241,9 @@ else
   ng "grillの実配布物が無い、またはgrill/grill v1を宣言していない"; grill_root="$TMP/stub-grill"
 fi
 if [ -d "$real_write_doc" ] && declares_contract "$real_write_doc" write-doc/write-doc; then
-  write_doc_root=$(cd "$real_write_doc" && pwd -P); ok "write-docの実配布物がwrite-doc/write-doc v1を宣言している"
+  write_doc_root=$(cd "$real_write_doc" && pwd -P); ok "write-docの実配布物がwrite-doc/write-doc v2を宣言している"
 else
-  ng "write-docの実配布物が無い、またはwrite-doc/write-doc v1を宣言していない"; write_doc_root="$TMP/stub-write-doc"
+  ng "write-docの実配布物が無い、またはwrite-doc/write-doc v2を宣言していない"; write_doc_root="$TMP/stub-write-doc"
 fi
 
 jq -n --arg w "$write_doc_root" --arg g "$grill_root" \
@@ -260,7 +261,7 @@ for runtime in codex claude; do
         (.deps["write-doc"].contract=="write-doc/write-doc") and
         (.deps["write-doc"].package_root==$w) and
         (.deps["write-doc"].source_kind=="dev-map") and
-        ([.deps["write-doc"].implements[] | select(.id=="write-doc/write-doc" and .version==1 and .kind=="playbook")]|length==1) and
+        ([.deps["write-doc"].implements[] | select(.id=="write-doc/write-doc" and .version==2 and .kind=="playbook")]|length==1) and
         (.deps["write-doc"].entry==(.deps["write-doc"].root+"/SKILL.md")) and
         (.deps["write-doc"].entry_skill=="write-doc") and
         (.deps.grill.dependency_scope=="external") and
@@ -275,9 +276,9 @@ for runtime in codex claude; do
         ([.playbook.steps[] | select(has("skill")) | .skill] | all(. != "grill" and . != $cleanup))
       ' >/dev/null && ok "${label}/${runtime}は外部依存を公開playbookとして解決する" \
         || ng "${label}/${runtime}の外部依存の解決結果"
-      # 公開面は .root 直下の3ファイルと .entry（入口SKILL.md）だけ。実在を確かめる。
+      # direct invocation の公開面は playbook.yml と .entry（入口SKILL.md）。実在を確かめる。
       for dep in grill write-doc; do
-        for member in playbook.yml scripts/resolve.sh scripts/prepare.sh; do
+        for member in playbook.yml; do
           [ -f "$(yq -er ".deps[\"$dep\"].root" "$TMP/${label}-${runtime}.yml")/$member" ] \
             || ng "${dep}の公開入口が無い: $member"
         done

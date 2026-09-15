@@ -39,36 +39,17 @@ printf '%s\n' "$CFG_FILE"
 
 一時ファイルは解決済みYAMLと同じdirectory（`$(dirname "$CFG_FILE")`）へ置く。
 
-## 2. 外部playbookの呼び方
+## 2. grillで戦略上の選択を確かめる
 
-`playbook:`の工程（`settle-strategy`と`document`）は、相手の公開契約だけを使って呼ぶ。相手のskill名、工程id、references、config、保存モード名、scriptの引数は使わない。**呼び方は2段だけである。**
+`settle-strategy`工程では、`grill`の公開契約だけを使う。相手のskill名、工程id、references、config、保存モード名、非公開pathは使わない。
 
-### 第1段 — こちらが解決する
-
-相手の`CONTRACT.md`が定める入力schemaで入力YAMLを書く。`contract`・`version`・`output_to`は必ず入れ、`output_to`は自分が用意する絶対pathにする。そのうえで相手の`prepare.sh`を通す。
-
-```bash
-DEP_CFG=$(bash "${.deps.<論理名>.root}/scripts/prepare.sh" "$(pwd)" \
-  --input="<入力YAMLの絶対path>" \
-  --scope="${.resolution.scope_root}" \
-  --bindings="${.resolution.bindings_lock}") || exit 2
-```
-
-標準出力に返る絶対pathが、相手の解決済みYAMLである。空なら工程を実行せず停止する。
-
-### 第2段 — 入口のSKILL.mdへ渡して実行させる
-
-`${.deps.<論理名>.entry}`が相手の入口SKILL.mdである。**第1段で得た`$DEP_CFG`を`CFG_FILE`として渡し**、そのSKILL.mdに従って実行する。入口は相手の契約が選ぶので、相手の公開skill名を知る必要はない。
-
-**相手に`prepare.sh`を再実行させない。** 解決は第1段で終わっている。二度解決すると、こちらが渡した`--input`と、入口playbookが決めた`--scope`・束縛lockが捨てられ、後始末の持ち主も分からなくなる。
-
-相手のrootから他のpath（`scripts/`のそれ以外、`skills/`、`references/`、`config/`）を組み立てない。相手の実行設定の後始末は相手が自分で行う。完了したら`output_to`の絶対pathに書かれた出力YAMLを読む。**相手の内部の記録やログは読まない。**
+`grill`の公開契約が定める入力object、または同じ内容を書いた入力YAMLの絶対pathを`${.deps.grill.entry}`へ直接渡す。依存先の`prepare.sh`、`resolve.sh`、解決済みYAMLは使わない。完了したら、入力で指定した`output_to`の絶対pathに書かれた出力YAMLを読む。相手の内部の記録やログは読まない。
 
 ### settle-strategy（`grill`）
 
 入力に`topic`、`context`（`purpose`・`audience`・`boundary`）、`questions`（`{id, question, recommendation}`。推奨は必ず添える）、既に分かっている材料の`grounding`（North Starと現在地の成果物）、`output_to`を渡す。最重要課題、全体を止める弱い環、手が届く近い目標、制約への態度、トレードオフ、やらないこと、資源集中は、ここで一度に一問だけ確かめる。題材固有の観点は`context`で渡し、相手に持ち込ませない。
 
-第1段は `bash "${.deps.grill.root}/scripts/prepare.sh"`、第2段は `${.deps.grill.entry}` のSKILL.mdである。
+入力を`${.deps.grill.entry}`へ直接渡し、その公開入口に従って実行する。
 
 出力は`decisions`と`open_questions`の2つだけである。「根拠づけられた入力」は相手の出力ではないので、次の`ground-strategy`工程がこちらの側で束ねる。
 
@@ -83,13 +64,11 @@ python3 "${PLUGIN_ROOT}/scripts/ground.py" --config "$CFG_FILE" \
 
 ### document（`write-doc`）
 
-入力の必須は`contract: write-doc/write-doc`、`version: 1`、`material`（**絶対pathの配列**。検証済み戦略・North Star・現在地・反証結果を素材として束ねたもの。1つ以上、それぞれ通常ファイル）、`output_to`である。任意で`document_type`（`${.playbook.document_type}`）、`output_format`（`${.playbook.output_format}`）、追加指示の`references`（こちらが書いた文書だけ）を渡す。保存先は、新規作成なら`name`、既存資料の差し替えなら`update_target`を渡す。この2つは**排他**で、両方を渡しても、どちらも渡さなくても止まる。`output_directory`は任意で、渡すなら`name`も要る。
+契約ID `write-doc/write-doc` の公開playbookへ入力objectを直接渡す。`material`は検証済み戦略、North Star、現在地、反証結果の各絶対pathを`{kind: file, path: <絶対path>}`にしたobject配列、`document_type`は`strategy`とする。追加で従わせる資料がある場合だけ、こちらが所有する読み取り可能な絶対pathを`references`へ渡す。
 
-**依頼に無い保存先を推測して渡さない。** `output_directory`を渡さない新規作成では、利用者が作業repositoryの設定で決めた保存先へ保存される。未知のキーを渡すと止まる。型の実現方法、テンプレート、記載例は相手に委ね、こちらは型名と検証済み素材だけを渡す。
+新規作成では、利用者が明示した`output_directory`と`.md`で終わる`name`を必ず組にする。既存資料を更新する場合は、その2つを渡さず、利用者が明示した既存Markdownの絶対pathを`update_target`へ渡す。保存先が未確定なら利用者へ確認し、推測で補わない。
 
-第1段は `bash "${.deps.write-doc.root}/scripts/prepare.sh"`、第2段は `${.deps.write-doc.entry}` のSKILL.mdである。
-
-出力YAMLは`status`（`completed` | `failed`）、`path`、`document_type`、`output_format`（失敗時は`reason`）を持つ。1回の呼び出しで作る資料は1本だけである。`status: completed`と`path`を確かめてから、次へ進む。
+入力YAML、解決済みYAML、依存先の`prepare.sh`、結果受取用ファイルは使わない。公開playbookが直接返した`status`が`completed`なら`path`を`product_strategy_document_path`として次へ渡す。`failed`なら`reason`を報告して停止する。1回の呼び出しで作る資料は1本だけである。
 
 ## 3. North Starを固定して戦略を作る
 

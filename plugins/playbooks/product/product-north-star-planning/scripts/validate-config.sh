@@ -7,7 +7,6 @@ jq -e '
   .requirements.interactive_with_grill==true and
   .requirements.no_strategy_output==true and
   .document_type=="north-star" and
-  .output_format=="markdown" and
   [.requires[].plugin]==["grill","product-north-star","write-doc"] and
   [.requires[].marketplace]==["grill","product-planning","write-doc"] and
   .contract.cleanup.delete_after_document==["candidate_product_north_star_path","product_north_star_path"] and
@@ -26,7 +25,7 @@ jq -e '
   .steps[3].needs==["candidate_product_north_star_path"] and
   .steps[3].provides==["product_north_star_path"] and
   .steps[4].needs==["product_north_star_path"] and
-  .steps[4].provides==["product_north_star_document_path"] and
+  .steps[4].provides==["status","product_north_star_document_path","reason"] and
   .steps[4].input=={"document_type":"${.document_type}"} and
   .steps[5].needs==["candidate_product_north_star_path","product_north_star_path","product_north_star_document_path"] and
   .steps[5].provides==["cleanup_report"]

@@ -6,7 +6,6 @@ version: 2
 name: product-strategy-planning
 description: 検査済みProduct North Starと現在地から対話的にRumelt型Product Strategyを作り、独立反証して資料に保存する
 document_type: strategy
-output_format: markdown
 instructions:
   execution:
     directive: stepsを上から順に実行し、North Starの同一性を最後まで保ち、要修正判定なら検証済み戦略を返さない
@@ -84,7 +83,7 @@ steps:
     input:
       document_type: ${.document_type}
     needs: [verified_strategy_path, product_north_star_path, product_context_path, strategy_critique_path]
-    provides: [product_strategy_document_path]
+    provides: [status, product_strategy_document_path, reason]
 
   - id: cleanup
     script: scripts/cleanup.py

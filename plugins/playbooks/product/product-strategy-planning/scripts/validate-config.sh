@@ -11,7 +11,6 @@ jq -e '
   .requirements.preserve_north_star==true and
   .requirements.stop_on_required_revision==true and
   .document_type=="strategy" and
-  .output_format=="markdown" and
   [.requires[].plugin]==["product-context","grill","product-strategy","strategy-critique","write-doc"] and
   [.requires[].marketplace]==["product-planning","grill","product-planning","product-planning","write-doc"] and
   .contract.cleanup.delete_after_document==["product_context_path","product_strategy_path","strategy_critique_path","verified_strategy_path"] and
@@ -35,7 +34,7 @@ jq -e '
   .steps[6].needs==["product_north_star_path","product_north_star_sha256","product_strategy_path","strategy_critique_path","critique_verdict"] and
   .steps[6].provides==["verified_strategy_path"] and
   .steps[7].needs==["verified_strategy_path","product_north_star_path","product_context_path","strategy_critique_path"] and
-  .steps[7].provides==["product_strategy_document_path"] and
+  .steps[7].provides==["status","product_strategy_document_path","reason"] and
   .steps[7].input=={"document_type":"${.document_type}"} and
   .steps[8].needs==["product_context_path","product_strategy_path","strategy_critique_path","verified_strategy_path","product_north_star_path","product_strategy_document_path"] and
   .steps[8].provides==["cleanup_report"]
