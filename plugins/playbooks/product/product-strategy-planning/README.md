@@ -12,11 +12,11 @@
 
 入力には必須節を持つ既存のProduct North Star成果物が必要です。無い場合や不正な場合は、現在地の整理へ進まず停止します。
 
-中間成果物は`product/context/<topic>.md`、`product/strategy/<topic>.md`、`product/strategy-critique/<topic>.md`へ保存します。入力North Starはハッシュ値で追跡し、工程中の更新・置換を拒否します。North Starへの異論は再策定の必要性として報告します。
+同じagentが現在地、戦略候補、反証を一つの文脈で保持します。検査用の候補fileはrun専用temporary directoryに限定します。入力North Starはハッシュ値で追跡し、工程中の更新・置換を拒否します。North Starへの異論は再策定の必要性として報告します。
 
 反証と最終検査を通った内容だけを`strategy`型として`write-doc`の公開playbookへ渡し、Markdown資料を保存します。型の実現方法は`write-doc`側に委ね、こちらは型名と検証済み素材と保存先だけを渡します。保存後は`scripts/cleanup.py`が、この playbook が所有する現在地、戦略候補、批評、検証用の中間成果物だけを削除し、入力したNorth Starと最終戦略資料を保持します。後片付けまで完了しなければ完了扱いにしません。
 
-`grill`は`playbook:`の工程として呼び、決定と未決を受け取ります。「根拠づけられた入力」は`scripts/ground.py`がこちら側で束ねます。設定は`product-strategy-planning`のscopeで分離します。反証結果が`要修正`なら検証済みStrategyを返しません。
+`grill`は直接objectを渡す`playbook:`工程として呼び、直接返された`status`、`decisions`、`open_questions`を同じagentがNorth Star・現在地と合わせます。入力・出力YAMLのリレーは使いません。`failed`または明示合意待ちなら後続へ進みません。反証結果が`要修正`なら検証済みStrategyを返しません。
 
 ## 設定
 
