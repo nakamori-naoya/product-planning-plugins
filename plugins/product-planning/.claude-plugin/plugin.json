@@ -1,0 +1,18 @@
+{
+  "name": "product-planning",
+  "version": "3.0.3",
+  "description": "Product North StarとProduct Strategyの立案・反証を行う自己完結skill 2つを提供する",
+  "author": {
+    "name": "NaoyaNakamori"
+  },
+  "skills": [
+    "./skills/set-product-north-star",
+    "./skills/set-product-strategy"
+  ],
+  "metadata": {
+    "harness": {
+      "marketplace": "product-planning",
+      "contractVersion": 1
+    }
+  }
+}

@@ -7,7 +7,7 @@
   "plugins": [
     {
       "name": "product-planning",
-      "source": "./plugins",
+      "source": "./plugins/product-planning",
       "description": "North StarとStrategyの立案・反証Playbookを一括提供する",
       "version": "3.0.3"
     }
