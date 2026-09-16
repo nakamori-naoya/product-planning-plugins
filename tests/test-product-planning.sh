@@ -20,8 +20,9 @@ expect_status() {
 }
 
 mkdir -p "$TMP/out/context" "$TMP/out/north" "$TMP/out/strategy" "$TMP/out/critique"
-yq -o=json '.' "$NORTH_ROOT/playbook.yml" | jq '{playbook:.}' > "$TMP/north-resolved.json"
-yq -o=json '.' "$STRATEGY_ROOT/playbook.yml" | jq '{playbook:.}' > "$TMP/strategy-resolved.json"
+# 旧「playbook包み」形（{playbook: {...}}）は受け付けない。contract を top-level に持つ playbook.yml だけを読む。
+yq -o=json '.' "$NORTH_ROOT/playbook.yml" | jq '{playbook:.}' > "$TMP/north-wrapped.json"
+yq -o=json '.' "$STRATEGY_ROOT/playbook.yml" | jq '{playbook:.}' > "$TMP/strategy-wrapped.json"
 
 
 cat > "$TMP/context.md" <<'MD'
@@ -76,13 +77,27 @@ echo "Scenario: North Starは戦略へ越境しない"
 echo "  Given 必須節を持つNorth Starがある"
 echo "  When 保存後にplaybook境界を検査する"
 cp "$TMP/north.md" "$TMP/out/north/sample.md" && ok "north star fixture is placed" || ng "north star fixture"
-python3 "$NORTH_ROOT/scripts/verify.py" --config "$NORTH_ROOT/playbook.yml" --north-star "$TMP/out/north/sample.md" >/dev/null && ok "公開playbook.ymlからnorth star境界を検査できる" || ng "公開playbook.ymlからのnorth star境界検査"
+# 正本: playbook.yml の contract。入力: 標準入力の本文。正規化: H2見出しで節を切る。
+# 合格述語: 節と順序が契約と一致し、全節が空でなく、戦略の節が無い。診断: 標準エラー。
+# 正例: 契約どおりの本文。反例: 戦略の節の混入、空の必須節。境界例: 空stdin、契約path欠落、検査用fileを引数で渡す旧形。
+if python3 "$NORTH_ROOT/scripts/verify.py" --config "$NORTH_ROOT/playbook.yml" < "$TMP/north.md" | jq -e '.verified==true and (.sections|length)==9' >/dev/null; then
+  ok "標準入力の本文と公開playbook.ymlからnorth star境界を検査できる"
+else
+  ng "標準入力からのnorth star境界検査"
+fi
 echo "  Then 戦略の節と空の必須節を拒否する"
 cp "$TMP/north.md" "$TMP/north-with-strategy.md"
 printf '\n## 診断\n現在の問題\n' >> "$TMP/north-with-strategy.md"
-expect_fail python3 "$NORTH_ROOT/scripts/verify.py" --config "$TMP/north-resolved.json" --north-star "$TMP/north-with-strategy.md"
+expect_fail_stdin() { local input="$1"; shift; "$@" <"$input" >/dev/null 2>&1 && { ng "$* < $input should fail"; return; }; ok "$* < $(basename "$input") is rejected"; }
+expect_fail_stdin "$TMP/north-with-strategy.md" python3 "$NORTH_ROOT/scripts/verify.py" --config "$NORTH_ROOT/playbook.yml"
 sed '/^## 判断原則$/,/^## やらないこと$/{/^## やらないこと$/!d;}' "$TMP/north.md" > "$TMP/north-empty.md"
-expect_fail python3 "$NORTH_ROOT/scripts/verify.py" --config "$TMP/north-resolved.json" --north-star "$TMP/north-empty.md"
+expect_fail_stdin "$TMP/north-empty.md" python3 "$NORTH_ROOT/scripts/verify.py" --config "$NORTH_ROOT/playbook.yml"
+echo "  And 空の標準入力、契約の欠落、検査用fileの引数を拒否する"
+: > "$TMP/empty.md"
+expect_fail_stdin "$TMP/empty.md" python3 "$NORTH_ROOT/scripts/verify.py" --config "$NORTH_ROOT/playbook.yml"
+expect_fail_stdin "$TMP/north.md" python3 "$NORTH_ROOT/scripts/verify.py" --config "$TMP/missing-playbook.yml"
+expect_fail_stdin "$TMP/north.md" python3 "$NORTH_ROOT/scripts/verify.py" --config "$NORTH_ROOT/playbook.yml" --north-star "$TMP/north.md"
+expect_fail_stdin "$TMP/north.md" python3 "$NORTH_ROOT/scripts/verify.py" --config "$TMP/north-wrapped.json"
 
 echo "Scenario: Strategyは入力North Starを保ち、要修正で停止する"
 echo "  Given 検査済みNorth Star、戦略、合格と要修正の反証結果がある"
@@ -90,6 +105,13 @@ north_result=$(python3 "$STRATEGY_ROOT/scripts/validate-north-star.py" --config 
 north_path=$(jq -r '.product_north_star_path // ""' <<<"$north_result")
 north_hash=$(jq -r '.product_north_star_sha256 // ""' <<<"$north_result")
 cp "$TMP/strategy.md" "$TMP/out/strategy/sample.md" && ok "strategy fixture is placed" || ng "strategy fixture"
+# 正本: playbook.yml の contract と North Star正本のsha256。入力: 標準入力のJSON {strategy, critique}。
+# 正規化: JSON parse後、各本文をH2見出しで節に切る。合格述語: sha256一致、戦略の節と順序が契約と一致し空でない、反証の判定が許容語彙。
+# 診断: 標準エラー。正例: 合格/要修正の反証。反例: 節の欠落、旧構成の節、判定欄が語彙外、North Star変更。
+# 境界例: 空stdin、不正JSON、keyの過不足、空文字列。
+strategy_json() { jq -n --rawfile s "$1" --rawfile c "$2" '{strategy:$s, critique:$c}'; }
+verify_strategy() { local s="$1" c="$2"; shift 2; strategy_json "$s" "$c" | python3 "$STRATEGY_ROOT/scripts/verify.py" "$@"; }
+expect_fail_strategy() { local s="$1" c="$2"; shift 2; verify_strategy "$s" "$c" "$@" >/dev/null 2>&1 && { ng "verify $(basename "$s") $(basename "$c") should fail"; return; }; ok "verify $(basename "$s") + $(basename "$c") is rejected"; }
 for item in needs-revision:要修正 accepted:合格; do
   topic="${item%%:*}"
   verdict="${item#*:}"
@@ -114,37 +136,44 @@ done
 echo "  When 最終検査を行う"
 sed '/^## 一貫した行動$/,$d' "$TMP/strategy.md" > "$TMP/strategy-no-actions.md"
 printf '\n## 一貫した行動\n' >> "$TMP/strategy-no-actions.md"
-expect_fail python3 "$STRATEGY_ROOT/scripts/verify.py" --config "$STRATEGY_ROOT/playbook.yml" --north-star "$north_path" --north-star-sha256 "$north_hash" --strategy "$TMP/strategy-no-actions.md" --critique "$TMP/out/critique/accepted.md"
+expect_fail_strategy "$TMP/strategy-no-actions.md" "$TMP/out/critique/accepted.md" --config "$STRATEGY_ROOT/playbook.yml" --north-star "$north_path" --north-star-sha256 "$north_hash"
 cp "$TMP/strategy.md" "$TMP/strategy-old-shape.md"
 printf '\n## 鎖構造と近い目標\n旧構成の独立節\n' >> "$TMP/strategy-old-shape.md"
-expect_fail python3 "$STRATEGY_ROOT/scripts/verify.py" --config "$TMP/strategy-resolved.json" --north-star "$north_path" --north-star-sha256 "$north_hash" --strategy "$TMP/strategy-old-shape.md" --critique "$TMP/out/critique/accepted.md"
-if python3 "$STRATEGY_ROOT/scripts/verify.py" --config "$TMP/strategy-resolved.json" --north-star "$north_path" --north-star-sha256 "$north_hash" --strategy "$TMP/out/strategy/sample.md" --critique "$TMP/out/critique/needs-revision.md" | jq -e '.verdict=="要修正" and (.strategy_path|endswith("sample.md"))' >/dev/null; then
+expect_fail_strategy "$TMP/strategy-old-shape.md" "$TMP/out/critique/accepted.md" --config "$STRATEGY_ROOT/playbook.yml" --north-star "$north_path" --north-star-sha256 "$north_hash"
+if verify_strategy "$TMP/out/strategy/sample.md" "$TMP/out/critique/needs-revision.md" --config "$STRATEGY_ROOT/playbook.yml" --north-star "$north_path" --north-star-sha256 "$north_hash" | jq -e '.verdict=="要修正" and (.product_north_star_path|endswith("sample.md"))' >/dev/null; then
   ok "構造検査は合法な要修正判定を改変せず返す"
 else
   ng "構造検査が要修正という意味判定を合否へ流さない"
 fi
-if python3 "$STRATEGY_ROOT/scripts/verify.py" --config "$STRATEGY_ROOT/playbook.yml" --north-star "$north_path" --north-star-sha256 "$north_hash" --strategy "$TMP/out/strategy/sample.md" --critique "$TMP/out/critique/accepted.md" | jq -e '.verdict=="合格" and (.strategy_path|endswith("sample.md"))' >/dev/null; then
+if verify_strategy "$TMP/out/strategy/sample.md" "$TMP/out/critique/accepted.md" --config "$STRATEGY_ROOT/playbook.yml" --north-star "$north_path" --north-star-sha256 "$north_hash" | jq -e '.verdict=="合格" and (.product_north_star_path|endswith("sample.md"))' >/dev/null; then
   ok "合格だけが検証済み戦略を返す"
 else
   ng "合格の戦略検査"
 fi
 sed 's/合格/保留/g' "$TMP/out/critique/accepted.md" > "$TMP/critique-invalid-verdict.md"
-expect_fail python3 "$STRATEGY_ROOT/scripts/verify.py" --config "$STRATEGY_ROOT/playbook.yml" --north-star "$north_path" --north-star-sha256 "$north_hash" --strategy "$TMP/out/strategy/sample.md" --critique "$TMP/critique-invalid-verdict.md"
+expect_fail_strategy "$TMP/out/strategy/sample.md" "$TMP/critique-invalid-verdict.md" --config "$STRATEGY_ROOT/playbook.yml" --north-star "$north_path" --north-star-sha256 "$north_hash"
 echo "  Then North Star変更は拒否し、要修正判定は責任agentの修正工程へ渡す"
 cp "$north_path" "$TMP/changed-north.md"
 printf '\n変更\n' >> "$TMP/changed-north.md"
-expect_fail python3 "$STRATEGY_ROOT/scripts/verify.py" --config "$TMP/strategy-resolved.json" --north-star "$TMP/changed-north.md" --north-star-sha256 "$north_hash" --strategy "$TMP/out/strategy/sample.md" --critique "$TMP/out/critique/accepted.md"
+expect_fail_strategy "$TMP/out/strategy/sample.md" "$TMP/out/critique/accepted.md" --config "$STRATEGY_ROOT/playbook.yml" --north-star "$TMP/changed-north.md" --north-star-sha256 "$north_hash"
+echo "  And 空の標準入力、不正JSON、keyの過不足、空文字列を拒否する"
+strategy_args=(--config "$STRATEGY_ROOT/playbook.yml" --north-star "$north_path" --north-star-sha256 "$north_hash")
+expect_fail_stdin "$TMP/empty.md" python3 "$STRATEGY_ROOT/scripts/verify.py" "${strategy_args[@]}"
+expect_fail_stdin "$TMP/strategy.md" python3 "$STRATEGY_ROOT/scripts/verify.py" "${strategy_args[@]}"
+printf '{"strategy":"## 診断\\nx"}' > "$TMP/strategy-missing-key.json"
+expect_fail_stdin "$TMP/strategy-missing-key.json" python3 "$STRATEGY_ROOT/scripts/verify.py" "${strategy_args[@]}"
+jq -n --rawfile s "$TMP/strategy.md" '{strategy:$s, critique:"", extra:1}' > "$TMP/strategy-extra-key.json"
+expect_fail_stdin "$TMP/strategy-extra-key.json" python3 "$STRATEGY_ROOT/scripts/verify.py" "${strategy_args[@]}"
+jq -n --rawfile s "$TMP/strategy.md" '{strategy:$s, critique:""}' > "$TMP/strategy-empty-critique.json"
+expect_fail_stdin "$TMP/strategy-empty-critique.json" python3 "$STRATEGY_ROOT/scripts/verify.py" "${strategy_args[@]}"
+echo "  And 旧「playbook包み」形の契約fileは verify / validate-north-star とも拒否する"
+expect_fail_strategy "$TMP/out/strategy/sample.md" "$TMP/out/critique/accepted.md" --config "$TMP/strategy-wrapped.json" --north-star "$north_path" --north-star-sha256 "$north_hash"
+expect_fail python3 "$STRATEGY_ROOT/scripts/validate-north-star.py" --config "$TMP/strategy-wrapped.json" --north-star "$TMP/out/north/sample.md"
 
 echo "Scenario: grill直接結果を同じagentが判断し、typed write-doc入力へ接続する"
 echo "  Given 契約どおりの直接結果objectと明示された保存先がある"
 work="$TMP/work"
 mkdir -p "$work"
-git -C "$work" init -q
-git -C "$work" config user.email tests@example.invalid
-git -C "$work" config user.name tests
-printf 'tracked\n' > "$work/tracked.md"
-git -C "$work" add tracked.md
-git -C "$work" -c commit.gpgsign=false commit -qm fixture
 # 公開YAMLのdocument_destinationがdocument工程まで届き、旧output_targetが無いことを見る。
 for playbook_root in "$NORTH_ROOT" "$STRATEGY_ROOT"; do
   playbook_name=$(basename "$playbook_root")
@@ -206,53 +235,17 @@ jq -n '{}' > "$TMP/write-doc-destination-unconfirmed.json"
 expect_fail jq -e "$write_doc_destination" "$TMP/write-doc-destination-unconfirmed.json"
 echo "  Then failedまたは明示合意待ちは本文作成へ進めず、保存成功時だけ直接pathを使う"
 
-echo "  When 後片付け工程を実行する"
-seed_artifacts() {
-  printf 'candidate\n' > "$work/candidate.md"
-  printf 'verified\n' > "$work/verified.md"
-  printf 'document\n' > "$work/document.md"
-}
-seed_artifacts
-if python3 "$NORTH_ROOT/scripts/cleanup.py" --config "$NORTH_ROOT/playbook.yml" --work-dir "$work" \
-  --artifact candidate_product_north_star_path="$work/candidate.md" \
-     --artifact product_north_star_document_path="$work/document.md" >/dev/null \
-   && [ ! -e "$work/candidate.md" ] && [ -e "$work/verified.md" ] && [ -f "$work/document.md" ]; then
-  ok "削除候補だけを消し、検査対象外の既存資料と最終資料を保持する"
-else
-  ng "後片付けの範囲"
-fi
-echo "  Then 最終資料・repository外・追跡済みファイルには手を触れない"
-seed_artifacts
-expect_fail python3 "$NORTH_ROOT/scripts/cleanup.py" --config "$NORTH_ROOT/playbook.yml" --work-dir "$work" \
-  --artifact candidate_product_north_star_path="$work/candidate.md" \
-  --artifact product_north_star_document_path="$work/absent.md"
-[ -f "$work/candidate.md" ] && ok "最終資料が無いときは何も削除しない" || ng "最終資料の確認"
-expect_fail python3 "$NORTH_ROOT/scripts/cleanup.py" --config "$NORTH_ROOT/playbook.yml" --work-dir "$work" \
-  --artifact candidate_product_north_star_path="$TMP/grill-result.json" \
-  --artifact product_north_star_document_path="$work/document.md"
-expect_fail python3 "$NORTH_ROOT/scripts/cleanup.py" --config "$NORTH_ROOT/playbook.yml" --work-dir "$work" \
-  --artifact candidate_product_north_star_path="$work/tracked.md" \
-  --artifact product_north_star_document_path="$work/document.md"
-[ -f "$work/tracked.md" ] && ok "追跡済みファイルを消さない" || ng "追跡済みファイルの保護"
-expect_fail python3 "$NORTH_ROOT/scripts/cleanup.py" --config "$NORTH_ROOT/playbook.yml" --work-dir "$work" \
-  --artifact unknown_path="$work/candidate.md" \
-  --artifact product_north_star_document_path="$work/document.md"
-
-echo "Scenario: Strategyの後片付けも公開YAMLと明示work directoryで完結する"
-printf 'strategy candidate\n' > "$work/strategy-candidate.md"
-printf 'strategy critique\n' > "$work/strategy-critique.md"
-printf 'strategy document\n' > "$TMP/out/strategy/final.md"
-if python3 "$STRATEGY_ROOT/scripts/cleanup.py" --config "$STRATEGY_ROOT/playbook.yml" --work-dir "$work" \
-  --artifact candidate_strategy_path="$work/strategy-candidate.md" \
-  --artifact critique_path="$work/strategy-critique.md" \
-  --artifact product_north_star_path="$north_path" \
-  --artifact product_strategy_document_path="$TMP/out/strategy/final.md" >/dev/null \
-   && [ ! -e "$work/strategy-candidate.md" ] && [ ! -e "$work/strategy-critique.md" ] \
-   && [ -f "$north_path" ] && [ -f "$TMP/out/strategy/final.md" ]; then
-  ok "Strategyはrun所有候補だけを消し入力と最終資料を保持する"
-else
-  ng "Strategyの公開cleanup経路"
-fi
+echo "  And 検査のためだけのfileと後片付け工程を持たない"
+for playbook_root in "$NORTH_ROOT" "$STRATEGY_ROOT"; do
+  playbook_name=$(basename "$playbook_root")
+  if jq -e '(.contract|has("cleanup")|not) and ([.steps[].id]|index("cleanup")|not) and ([.steps[].id]|index("prepare-work-directory")|not)
+            and ([.steps[]|.provides[]?]|index("work_directory")|not)' "$TMP/$playbook_name-destination.json" >/dev/null \
+     && [ ! -e "$playbook_root/scripts/cleanup.py" ]; then
+    ok "$playbook_name は作業directory・候補file・cleanup工程を持たない"
+  else
+    ng "$playbook_name に一時file配管が残っている"
+  fi
+done
 
 echo "Scenario: product repositoryには電子チケットの業界課題とHTML作例だけを置く"
 echo "  Given ドメイン・データモデリングの題材をBDD repositoryへ分離した"

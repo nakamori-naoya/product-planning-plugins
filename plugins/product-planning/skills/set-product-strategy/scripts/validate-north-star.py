@@ -21,7 +21,9 @@ def load_playbook(config_path: Path) -> dict:
         text=True,
     )
     resolved = json.loads(result.stdout)
-    return resolved.get("playbook", resolved)
+    if not isinstance(resolved, dict) or not isinstance(resolved.get("contract"), dict):
+        raise ValueError("契約fileは top-level に contract を持つ playbook.yml にする")
+    return resolved
 
 
 def sections(body: str) -> tuple[list[str], dict[str, str]]:
