@@ -13,7 +13,7 @@ Product North Starを定義し、そこからRumelt型Product Strategyを立案�
 
 ## 公開入口を選ぶ
 
-次の入口から依頼します。各入口は `SKILL.md`（目的・入力・判断基準・手順・停止条件・出力）、隣接 `playbook.yml`（同じagentが辿る工程順と外部依存）、`references/`（判断規律）、`scripts/`（決定論的な検査と後片付け）だけで完結し、内部skillを持ちません。
+次の入口から依頼します。各入口は `SKILL.md`（目的・入力・判断基準・手順・停止条件・出力）、隣接 `playbook.yml`（同じagentが辿る工程順と外部依存）、`references/`（判断規律）、`scripts/`（決定論的な検査）だけで完結し、内部skillを持ちません。
 
 | 今の状況 | 公開入口 |
 |---|---|
@@ -114,7 +114,7 @@ marketplaceの取得と、インストール済みパッケージの更新は分
 
 ## 設定
 
-入口は設定fileを持たない。保存先は公開入力 `document_destination`（新規は `output_directory` + `name`、更新は `update_target`）で受け取り、既定の置き場を補わない。中間成果物はsystem temporary directory内のrun専用directoryに置き、最終資料の保存後に入口の `scripts/cleanup.py` が自分の候補fileだけを削除する。
+入口は設定fileを持たない。保存先は公開入力 `document_destination`（新規は `output_directory` + `name`、更新は `update_target`）で受け取り、既定の置き場を補わない。本文はagentがインメモリで保持し、検査scriptへは標準入力で渡す。作業directory、検査用file、後片付け工程は持たない。
 
 ## 検証
 
@@ -132,5 +132,6 @@ bash scripts/validate.sh
 
 - marketplaceの `source` を `./plugins` から `./plugins/product-planning` へ、公開入口を `plugins/playbooks/product/{product-north-star-planning, product-strategy-planning}` から `plugins/product-planning/skills/{set-product-north-star, set-product-strategy}` へ移した。隣接 `playbook.yml` の `name` は入口名と同じになった。配置変更はinstall identityを変えるため、release時にmajor bumpが要る。
 - 内部skill `product-context` / `product-north-star` / `product-strategy` / `strategy-critique` は、それを使う公開入口が1つずつだったため入口へ統合した。判断規律の参照文書は入口の `references/` へ移した。
-- 設定解決runtime（`prepare.sh` / `resolve.sh` / `run-config.py` / `state.py`）、`config/defaults.yml`、入口ごとのnested manifest、`artifact.py` による中間保存を撤去した。`verify.py` / `validate-north-star.py` / `cleanup.py` は公開 `playbook.yml` の `contract` を直接読む。
+- 設定解決runtime（`prepare.sh` / `resolve.sh` / `run-config.py` / `state.py`）、`config/defaults.yml`、入口ごとのnested manifest、`artifact.py` による中間保存を撤去した。`verify.py` / `validate-north-star.py` は公開 `playbook.yml` の `contract` を直接読む。
+- 検査のためだけの一時file配管（run専用directory、候補file、`scripts/cleanup.py`、`contract.cleanup`）を撤去した。`verify.py` は本文を標準入力で受ける。`grill` へ渡す問いは成果を左右する最大6問に絞り、残りは推奨を仮置きした未決として資料へ載せる。
 - 外部依存の実行時解決（`dependencies.yml` による束縛、`--explain`）は撤去した。`requires` は外部package（`grill` / `write-doc`）だけを列挙する。

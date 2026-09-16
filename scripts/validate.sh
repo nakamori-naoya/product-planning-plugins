@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Scenario: repositoryのplugin集合、manifest、marketplace、公開入口の構造、決定論的toolの契約が一致する
-# 機械検査は宣言と実体の対応、隣接playbook.ymlの契約、verify / validate-north-star / cleanup の閉じた入出力だけを判定する。
+# 機械検査は宣言と実体の対応、隣接playbook.ymlの契約、verify / validate-north-star の閉じた入出力（標準入力の本文＋正本path）だけを判定する。
 # North Starや戦略の内容、反証の妥当性、SKILL本文の判断基準の十分性は意味評価として残す。
 set -uo pipefail
 ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
