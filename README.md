@@ -133,5 +133,5 @@ bash scripts/validate.sh
 - marketplaceの `source` を `./plugins` から `./plugins/product-planning` へ、公開入口を `plugins/playbooks/product/{product-north-star-planning, product-strategy-planning}` から `plugins/product-planning/skills/{set-product-north-star, set-product-strategy}` へ移した。隣接 `playbook.yml` の `name` は入口名と同じになった。配置変更はinstall identityを変えるため、release時にmajor bumpが要る。
 - 内部skill `product-context` / `product-north-star` / `product-strategy` / `strategy-critique` は、それを使う公開入口が1つずつだったため入口へ統合した。判断規律の参照文書は入口の `references/` へ移した。
 - 設定解決runtime（`prepare.sh` / `resolve.sh` / `run-config.py` / `state.py`）、`config/defaults.yml`、入口ごとのnested manifest、`artifact.py` による中間保存を撤去した。`verify.py` / `validate-north-star.py` は公開 `playbook.yml` の `contract` を直接読む。
-- 検査のためだけの一時file配管（run専用directory、候補file、`scripts/cleanup.py`、`contract.cleanup`）を撤去した。`verify.py` は本文を標準入力で受ける。`grill` へ渡す問いは成果を左右する最大6問に絞り、残りは推奨を仮置きした未決として資料へ載せる。
+- 検査のためだけの一時file配管（run専用directory、候補file、`scripts/cleanup.py`、`contract.cleanup`）を撤去した。`verify.py` は本文を標準入力で受ける。`grill` へ渡す問いは成果を左右する順に厳選し、対話の作法と問う数の上限は `grill` の公開契約に従う。上限で問われなかった論点は返った `open_questions` の推奨を仮置きした未決として資料へ載せる。各入口は任意入力 `references`（追加で従う資料の絶対path配列）を持つ。
 - 外部依存の実行時解決（`dependencies.yml` による束縛、`--explain`）は撤去した。`requires` は外部package（`grill` / `write-doc`）だけを列挙する。

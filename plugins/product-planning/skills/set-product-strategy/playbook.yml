@@ -5,7 +5,7 @@
 version: 2
 name: set-product-strategy
 description: 検査済みProduct North Starと現在地から対話的にRumelt型Product Strategyを作り、独立反証して資料に保存する
-inputs: [product_north_star_path, user_input, referenced_artifacts, document_destination]
+inputs: [product_north_star_path, user_input, references, document_destination]
 
 requires:
   - {plugin: grill, marketplace: grill}
@@ -28,13 +28,13 @@ steps:
   - id: map-context
     agent_work: invoking_agent
     purpose: 同じagentが現在地を事実・仮説・未確認事項、制約・能力・機会へ分け、現状が生む問題とNorth Starへ進む際の障壁を洗い出す
-    needs: [product_north_star_path]
+    needs: [product_north_star_path, user_input, references]
     provides: [product_context, context_unknowns, challenges]
 
   - id: settle-strategy
     playbook: grill
-    purpose: North Starと現在地だけでは決まらない戦略上の選択のうち成果を左右する最大6問を、推奨つきで一問ずつ確かめる
-    needs: [product_north_star_path, product_context, context_unknowns, challenges]
+    purpose: North Starと現在地だけでは決まらない戦略上の選択のうち成果を左右する順に厳選した問いを推奨つきで確かめる
+    needs: [product_north_star_path, references, product_context, context_unknowns, challenges]
     provides: [status, decisions, open_questions, reason]
 
   - id: form-strategy
@@ -66,5 +66,5 @@ steps:
     purpose: 検査済み戦略本文と反証をkind:textのmaterialとし、公開document_destinationから新規または更新の保存先を排他的に組み立ててMarkdownを1本保存する
     input:
       document_type: strategy
-    needs: [approved_strategy, critique, validation_report, product_north_star_path, document_destination]
+    needs: [approved_strategy, critique, validation_report, product_north_star_path, document_destination, references]
     provides: [status, path, reason]

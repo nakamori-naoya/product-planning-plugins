@@ -5,7 +5,7 @@
 version: 2
 name: set-product-north-star
 description: 顧客理解と価値仮説から対話的にProduct North Starを作り、成果物境界を検証して資料に保存する
-inputs: [user_input, referenced_artifacts, document_destination]
+inputs: [user_input, references, document_destination]
 
 requires:
   - {plugin: grill, marketplace: grill}
@@ -19,8 +19,8 @@ contract:
 steps:
   - id: settle-north-star
     playbook: grill
-    purpose: 入力と参照資料だけでは決まらない価値判断のうち成果を左右する最大6問を、推奨つきで一問ずつ確かめる
-    needs: [user_input, referenced_artifacts]
+    purpose: 入力と参照資料だけでは決まらない価値判断のうち成果を左右する順に厳選した問いを推奨つきで確かめる
+    needs: [user_input, references]
     provides: [status, decisions, open_questions, reason]
 
   - id: ground-north-star
@@ -46,5 +46,5 @@ steps:
     purpose: 検査済みNorth Star本文をkind:textのmaterialとし、公開document_destinationから新規または更新の保存先を排他的に組み立ててMarkdownを1本保存する
     input:
       document_type: north-star
-    needs: [final_markdown, validation_report, document_destination]
+    needs: [final_markdown, validation_report, document_destination, references]
     provides: [status, path, reason]
