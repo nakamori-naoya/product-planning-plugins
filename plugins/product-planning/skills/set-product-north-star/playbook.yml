@@ -1,6 +1,7 @@
 # set-product-north-star — 価値判断を対話で確かめ、戦略へ越境しないProduct North Starを完成させる。
 # 外部packageへは公開playbookでだけ依存する。grillとwrite-docの内部・工程id・script引数には触れない。
 # 工程順はこのYAMLが正本で、agent_work工程はこのSKILLを実行する同じagentが同じ文脈で担う。
+# 本文はagentがインメモリで保持し、検査scriptへは標準入力で渡す。作業directoryや検査用fileは作らない。
 version: 2
 name: set-product-north-star
 description: 顧客理解と価値仮説から対話的にProduct North Starを作り、成果物境界を検証して資料に保存する
@@ -10,38 +11,34 @@ requires:
   - {plugin: grill, marketplace: grill}
   - {plugin: write-doc, marketplace: write-doc}
 
-# verify.py と cleanup.py が読む構造契約。
+# verify.py が読む構造契約。
 contract:
   north_star_sections: [対象, 望む状態, 約束する価値, プロダクトの役割, 判断原則, やらないこと, 根拠と仮説, 見直し条件, 未決]
   forbidden_sections: [診断, 基本方針, 一貫した行動, 資源配分, 行動計画, ロードマップ, 期限つき施策]
-  # 後片付けはこのplaybookが所有する成果物だけを対象にする。
-  cleanup:
-    delete_after_document: [candidate_product_north_star_path]
-    preserve: [product_north_star_document_path]
 
 steps:
   - id: settle-north-star
     playbook: grill
-    purpose: 入力と参照資料だけでは決まらない価値判断を、推奨つきで一問ずつ確かめる
+    purpose: 入力と参照資料だけでは決まらない価値判断のうち成果を左右する最大6問を、推奨つきで一問ずつ確かめる
     needs: [user_input, referenced_artifacts]
     provides: [status, decisions, open_questions, reason]
 
   - id: ground-north-star
     agent_work: invoking_agent
-    purpose: 同じagentが依頼、参照資料、確かめた決定と未決を読み、根拠・仮説・決定・未決へ区別する
+    purpose: 同じagentが依頼、参照資料、確かめた決定と未決（問わなかった論点は推奨を仮置き）を読み、根拠・仮説・決定・未決へ区別する
     needs: [status, decisions, open_questions]
     provides: [north_star_evidence]
 
   - id: define-north-star
     agent_work: invoking_agent
-    purpose: 同じagentが根拠づけられた入力から契約どおりのProduct North Star本文を作り、検査用の一時ファイルへ同じ本文を書く
+    purpose: 同じagentが根拠づけられた入力から契約どおりのProduct North Star本文をインメモリで作る
     needs: [north_star_evidence]
-    provides: [final_markdown, candidate_product_north_star_path, work_directory]
+    provides: [final_markdown]
 
   - id: verify
     script: scripts/verify.py
-    purpose: 必須節と空欄を検査し、戦略の節を含まないNorth Starだけを返す
-    needs: [candidate_product_north_star_path]
+    purpose: 本文を標準入力で受け、必須節と空欄を検査し、戦略の節を含まないNorth Starだけを通す
+    needs: [final_markdown]
     provides: [validation_report]
 
   - id: document
@@ -51,9 +48,3 @@ steps:
       document_type: north-star
     needs: [final_markdown, validation_report, document_destination]
     provides: [status, path, reason]
-
-  - id: cleanup
-    script: scripts/cleanup.py
-    purpose: 最終資料の保存を確認した後、contract.cleanupで削除候補にした自分の作業用成果物だけを削除し、最終資料を保持する
-    needs: [work_directory, candidate_product_north_star_path, path]
-    provides: [cleanup_report]
