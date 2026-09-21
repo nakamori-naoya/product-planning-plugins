@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """戦略候補と反証の構造契約、North Starの同一性を検査する。
 
-  verify.py --config <同じdirectoryのplaybook.yml> --north-star <North Star正本の絶対path> --north-star-sha256 <validate-north-star.pyが返したsha256> \
+  verify.py --config <同じdirectoryのplaybook.yml> --north-star <Product North Star資料の絶対path> --north-star-sha256 <validate-north-star.pyが返したsha256> \
     < '{"strategy": "<戦略本文（Markdown）>", "critique": "<反証本文（Markdown）>"}'
 
 入力は標準入力のJSON object（keyは strategy と critique のちょうど2つ。値は空でない文字列）、
-引数の playbook.yml（contract.strategy_sections / critique_verdicts）、North Star正本のpathとsha256だけである。
+引数の playbook.yml（contract.strategy_sections / critique_verdicts）、Product North Star資料のpathとsha256だけである。
 検査用fileは受け取らない。合格時は標準出力へ {"verdict": ..., "product_north_star_path": ...} を返す。
 verdict は反証の「## 判定」節の値をそのまま返し、合格・要修正の意味判定は変えない。
 

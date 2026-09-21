@@ -14,7 +14,7 @@ description: 完成済みのProduct North Starを入力として検査し、現�
 - `references`: 追加で従う資料の絶対path配列。任意。手順の最初に読む。プロジェクト固有の規約や文脈は、対象repositoryのAGENTS.md / CLAUDE.mdとこの入力で渡される。
 - `document_destination`: 新規作成なら `{output_directory: <既存の書き込み可能な絶対directory>, name: <.md名>}`、更新なら `{update_target: <既存Markdownの絶対path>}` のどちらか一方だけを持つobject。片側の欠落、両方式の混在、未知キー、未確定の保存先は受け取らない。
 
-同じagentが、同じdirectoryの [`playbook.yml`](playbook.yml) を読み、その `steps` の宣言順を実行順の正本にする。`agent_work: invoking_agent` の工程はこのagentが同じ文脈で意味判断し、`script:` は決定論的な構造検査、`playbook:` は依存先の公開playbookの呼び出しである。戦略本文と反証はインメモリで保持し、検査scriptへは標準入力で渡す。工程間で値を運ぶためのfileや作業directoryは作らない。
+同じagentが、同じdirectoryの [`playbook.yml`](playbook.yml) を読み、その `steps` の宣言順を実行順の正式な定義にする。`agent_work: invoking_agent` の工程はこのagentが同じ文脈で意味判断し、`script:` は決定論的な構造検査、`playbook:` は依存先の公開playbookの呼び出しである。戦略本文と反証はインメモリで保持し、検査scriptへは標準入力で渡す。工程間で値を運ぶためのfileや作業directoryは作らない。
 
 ## 判断基準
 
@@ -35,7 +35,7 @@ description: 完成済みのProduct North Starを入力として検査し、現�
 3. **戦略上の選択を確かめる（`settle-strategy`）。** `grill` の公開契約の入力object（`contract: grill/grill`、`version: 1`、`topic`、`context` の `purpose` / `audience` / `boundary`、判断基準で選び成果を左右する順に並べた `questions`（推奨付き。無ければ `[]`）、North Star・現在地の資料と入力の `references`。保存も求められた場合だけ `output_to`）を公開Skill `grill:grill` へ直接渡し、対話は `grill` の公開契約に従って同じ会話で進める。返ったobjectの `status` が `completed` なら `decisions` と `open_questions` を使い、`failed` なら `reason` を報告して止まる。契約IDや版の不一致、`rationale` の無い決定、`open` / `withdrawn` 以外の状態、配列の欠落や `null` は不正な結果として止まる。空配列は合法である。2回目の `grill` は、利用者が求めた場合か、決定なしでは戦略を完成できない場合だけ行う。
 4. **戦略を作る（`form-strategy`）。** `## 診断` `## 基本方針` `## 一貫した行動` だけを最上位の節に持つ本文をインメモリで作る。節内は意味のある `###` 小見出しと本文で因果を読めるようにし、選ぶことと選ばないこと、行動間の因果は本文を補う図でも示してよい。問わなかった論点と `open_questions` は推奨を仮置きし、該当箇所に仮説と分かる形で書く。推奨が無い未決は、agentが根拠から自分の仮説を置き、仮説として明示する。置けない（判断者の決定が要る）ものだけhard stop。
 5. **反証する（`critique`）。** 入力戦略を編集せず、反証者の視点で主張・根拠・反証・重大度・修正要求を対応づけ、`## 判定`（`合格` か `要修正` だけ）、`## 診断への反証` `## 基本方針への反証` `## 一貫した行動への反証` `## 鎖構造と近い目標への反証` `## 制約・根拠・鮮度` `## 修正要求` を持つ反証本文をインメモリで作る。同一文脈で行った反証ならその制約を、仮置きした推奨があればその一覧を `## 制約・根拠・鮮度` に書く。
-6. **構造を検査する（`verify`）。** `{"strategy": <戦略本文>, "critique": <反証本文>}` のJSON objectを標準入力で `python3 scripts/verify.py --config playbook.yml --north-star <product_north_star_path> --north-star-sha256 <sha256>` へ渡す。入力は標準入力のJSON（`strategy` と `critique` のちょうど2 key、値は空でない文字列）、同じdirectoryの `playbook.yml`（`contract.strategy_sections` / `critique_verdicts`）、North Star正本のpathとsha256。出力は `verdict` と `product_north_star_path` を持つ標準出力のJSON、終了codeは `0` = 構造が契約に合う（`合格` と `要修正` のどちらも値として返る）、`2` = 標準入力が空か不正JSON、keyの過不足、North Starの同一性が崩れた、戦略の節構造が違う、判定欄が無いか許容語彙外（診断は標準エラー）。`2` なら止まる。渡し方の例:
+6. **構造を検査する（`verify`）。** `{"strategy": <戦略本文>, "critique": <反証本文>}` のJSON objectを標準入力で `python3 scripts/verify.py --config playbook.yml --north-star <product_north_star_path> --north-star-sha256 <sha256>` へ渡す。入力は標準入力のJSON（`strategy` と `critique` のちょうど2 key、値は空でない文字列）、同じdirectoryの `playbook.yml`（`contract.strategy_sections` / `critique_verdicts`）、Product North Star資料のpathとsha256。出力は `verdict` と `product_north_star_path` を持つ標準出力のJSON、終了codeは `0` = 構造が契約に合う（`合格` と `要修正` のどちらも値として返る）、`2` = 標準入力が空か不正JSON、keyの過不足、North Starの同一性が崩れた、戦略の節構造が違う、判定欄が無いか許容語彙外（診断は標準エラー）。`2` なら止まる。渡し方の例:
 
    ```bash
    jq -n --arg strategy "$STRATEGY" --arg critique "$CRITIQUE" '{strategy: $strategy, critique: $critique}' \
