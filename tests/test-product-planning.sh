@@ -77,7 +77,7 @@ echo "Scenario: North Starは戦略へ越境しない"
 echo "  Given 必須節を持つNorth Starがある"
 echo "  When 保存後にplaybook境界を検査する"
 cp "$TMP/north.md" "$TMP/out/north/sample.md" && ok "north star fixture is placed" || ng "north star fixture"
-# 正本: playbook.yml の contract。入力: 標準入力の本文。正規化: H2見出しで節を切る。
+# 基準資料: playbook.yml の contract。入力: 標準入力の本文。正規化: H2見出しで節を切る。
 # 合格述語: 節と順序が契約と一致し、全節が空でなく、戦略の節が無い。診断: 標準エラー。
 # 正例: 契約どおりの本文。反例: 戦略の節の混入、空の必須節。境界例: 空stdin、契約path欠落、検査用fileを引数で渡す旧形。
 if python3 "$NORTH_ROOT/scripts/verify.py" --config "$NORTH_ROOT/playbook.yml" < "$TMP/north.md" | jq -e '.verified==true and (.sections|length)==9' >/dev/null; then
@@ -105,7 +105,7 @@ north_result=$(python3 "$STRATEGY_ROOT/scripts/validate-north-star.py" --config 
 north_path=$(jq -r '.product_north_star_path // ""' <<<"$north_result")
 north_hash=$(jq -r '.product_north_star_sha256 // ""' <<<"$north_result")
 cp "$TMP/strategy.md" "$TMP/out/strategy/sample.md" && ok "strategy fixture is placed" || ng "strategy fixture"
-# 正本: playbook.yml の contract と North Star正本のsha256。入力: 標準入力のJSON {strategy, critique}。
+# 基準資料: playbook.yml の contract と Product North Star資料のsha256。入力: 標準入力のJSON {strategy, critique}。
 # 正規化: JSON parse後、各本文をH2見出しで節に切る。合格述語: sha256一致、戦略の節と順序が契約と一致し空でない、反証の判定が許容語彙。
 # 診断: 標準エラー。正例: 合格/要修正の反証。反例: 節の欠落、旧構成の節、判定欄が語彙外、North Star変更。
 # 境界例: 空stdin、不正JSON、keyの過不足、空文字列。
@@ -186,7 +186,7 @@ for playbook_root in "$NORTH_ROOT" "$STRATEGY_ROOT"; do
     || ng "$playbook_nameの公開保存先接続"
 done
 ok "2入口とも公開document_destinationをdocumentまで運び、旧output_targetとneed欠落を拒否する"
-# 正本: grill v1 / write-doc v2公開契約。入力: direct object。
+# 基準資料: grill v1 / write-doc v2公開契約。入力: direct object。
 # 正規化: JSON objectをjqで検査。合格述語: completedの2配列とtyped material、排他的保存先。
 # 反例: failed、配列欠落/null、保存先同時指定。境界例: 両配列空、output_to省略。
 # 意味評価: 根拠・決定・未決をどう本文へ統合するかは同じagentが読む。
@@ -277,7 +277,7 @@ done
 [ "$self_contained" = 1 ] && ok "二つの入口はそれぞれ単独で成立する"
 
 echo "Scenario: product配布物へ不要な英語ラベルと特定企業名を戻さない"
-echo "  Given product関連の正本、skill、playbookがある"
+echo "  Given product関連の基準資料、skill、playbookがある"
 echo "  When 禁止する利用者向け表現を走査する"
 paths=(
   "$NORTH_ROOT"

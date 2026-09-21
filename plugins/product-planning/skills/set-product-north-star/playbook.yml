@@ -1,6 +1,6 @@
 # set-product-north-star — 価値判断を対話で確かめ、戦略へ越境しないProduct North Starを完成させる。
 # 外部packageへは公開playbookでだけ依存する。grillとwrite-docの内部・工程id・script引数には触れない。
-# 工程順はこのYAMLが正本で、agent_work工程はこのSKILLを実行する同じagentが同じ文脈で担う。
+# 工程順の正式な定義はこのYAMLであり、agent_work工程はこのSKILLを実行する同じagentが同じ文脈で担う。
 # 本文はagentがインメモリで保持し、検査scriptへは標準入力で渡す。作業directoryや検査用fileは作らない。
 version: 2
 name: set-product-north-star

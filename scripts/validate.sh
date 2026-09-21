@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # Scenario: repositoryのplugin集合、manifest、marketplace、公開入口の構造、決定論的toolの契約が一致する
-# 機械検査は宣言と実体の対応、隣接playbook.ymlの契約、verify / validate-north-star の閉じた入出力（標準入力の本文＋正本path）だけを判定する。
+# 機械検査は宣言と実体の対応、隣接playbook.ymlの契約、verify / validate-north-star の閉じた入出力（標準入力の本文＋基準資料path）だけを判定する。
 # North Starや戦略の内容、反証の妥当性、SKILL本文の判断基準の十分性は意味評価として残す。
 set -uo pipefail
 ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
-# 保守toolの正本は兄弟checkoutの harness-tools。無ければ止まる（fixtureで代用しない）。
+# 保守toolの参照元は兄弟checkoutの harness-tools。無ければ止まる（fixtureで代用しない）。
 TOOLS="$ROOT/../harness-tools/tools"
 [ -d "$TOOLS" ] || { echo "[error] 兄弟 checkout harness-tools が無い: $TOOLS" >&2; exit 2; }
 TMP_ROOT=$(mktemp -d "${TMPDIR:-/tmp}/plugin-repository-validation.XXXXXX") || exit 2
