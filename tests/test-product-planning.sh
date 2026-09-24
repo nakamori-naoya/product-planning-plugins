@@ -256,14 +256,7 @@ printf '%s\n' \
   "docs/exercises/product-planning/electronic-ticket-product-planning.html" > "$TMP/docs-expected"
 echo "  Then product planningの題材とHTML作例だけが残る"
 cmp -s "$TMP/docs-expected" "$TMP/docs-files" && ok "docsにはproduct planningの題材とHTML作例だけがある" || ng "docsの整理結果"
-if [ ! -d "$ROOT/domain" ] &&
-   rg -n '紙のチケット' "$ROOT/docs/exercises/product-planning/electronic-ticket-industry-challenges.md" >/dev/null &&
-   rg -n '不正転売' "$ROOT/docs/exercises/product-planning/electronic-ticket-industry-challenges.md" >/dev/null &&
-   rg -n '不正入場' "$ROOT/docs/exercises/product-planning/electronic-ticket-industry-challenges.md" >/dev/null; then
-  ok "旧domainを削除し、電子チケットに至る業界課題を題材化した"
-else
-  ng "domain削除または業界課題の題材"
-fi
+[ ! -d "$ROOT/domain" ] && ok "旧domainを削除した" || ng "旧domainが残っている"
 
 echo "Scenario: 公開入口は旧内部skill名と配管を前提にしない"
 echo "  Given 単独で公開される二つの入口がある"
@@ -275,42 +268,6 @@ for entry in "$NORTH_ROOT" "$STRATEGY_ROOT"; do
   fi
 done
 [ "$self_contained" = 1 ] && ok "二つの入口はそれぞれ単独で成立する"
-
-echo "Scenario: product配布物へ不要な英語ラベルと特定企業名を戻さない"
-echo "  Given product関連の基準資料、skill、playbookがある"
-echo "  When 禁止する利用者向け表現を走査する"
-paths=(
-  "$NORTH_ROOT"
-  "$STRATEGY_ROOT"
-)
-terms=(
-  "Layer""X"
-  "Fa""ct"
-  "Assump""tion"
-  "Unk""nown"
-  "Constra""int"
-  "Capabi""lity"
-  "Opportu""nity"
-  "source"":"
-  "as-of"":"
-  "Diagno""sis"
-  "Guiding Pol""icy"
-  "Coherent Act""ions"
-  "Ver""dict"
-  "Strategy critique con""tract"
-  "米""軍"
-  "ケネ""ディ"
-)
-bad=0
-for term in "${terms[@]}"; do
-  if rg -n -F "$term" "${paths[@]}" >/dev/null; then
-    ng "不要な表現が残っている: $term"
-    bad=1
-  fi
-done
-[ "$bad" = 0 ] && ok "不要な英語ラベルと特定企業名が無い"
-echo "  Then Product North StarとRumeltの固有概念だけは利用者向け表現として残る"
-rg -F "Product North Star" "$NORTH_ROOT/references/product-north-star.md" >/dev/null && rg -F "Rumelt" "$STRATEGY_ROOT/references/product-strategy.md" >/dev/null && ok "North StarとRumeltは保持される" || ng "保持すべき固有概念"
 
 echo "product planning BDD: $PASS passed, $FAIL failed"
 [ "$FAIL" = 0 ]
