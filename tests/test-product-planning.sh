@@ -85,6 +85,9 @@ if python3 "$NORTH_ROOT/scripts/verify.py" --config "$NORTH_ROOT/playbook.yml" <
 else
   ng "標準入力からのnorth star境界検査"
 fi
+echo "  And 見出しの「:」の後ろに結論を書いても、節の名前で読む"
+sed 's/^## 判断原則$/## 判断原則: 迷ったら利用者の手間を減らす方を選ぶ/' "$TMP/north.md" > "$TMP/north-concluded.md"
+python3 "$NORTH_ROOT/scripts/verify.py" --config "$NORTH_ROOT/playbook.yml" < "$TMP/north-concluded.md" >/dev/null 2>&1 && ok "結論を入れた見出しのnorth starを通す" || ng "結論を入れた見出しのnorth star"
 echo "  Then 戦略の節と空の必須節を拒否する"
 cp "$TMP/north.md" "$TMP/north-with-strategy.md"
 printf '\n## 診断\n現在の問題\n' >> "$TMP/north-with-strategy.md"
@@ -140,6 +143,8 @@ expect_fail_strategy "$TMP/strategy-no-actions.md" "$TMP/out/critique/accepted.m
 cp "$TMP/strategy.md" "$TMP/strategy-old-shape.md"
 printf '\n## 鎖構造と近い目標\n旧構成の独立節\n' >> "$TMP/strategy-old-shape.md"
 expect_fail_strategy "$TMP/strategy-old-shape.md" "$TMP/out/critique/accepted.md" --config "$STRATEGY_ROOT/playbook.yml" --north-star "$north_path" --north-star-sha256 "$north_hash"
+sed 's/^## 診断$/## 診断: 最初の一回の手配が遅いことが全体を止めている/' "$TMP/out/strategy/sample.md" > "$TMP/strategy-concluded.md"
+verify_strategy "$TMP/strategy-concluded.md" "$TMP/out/critique/accepted.md" --config "$STRATEGY_ROOT/playbook.yml" --north-star "$north_path" --north-star-sha256 "$north_hash" >/dev/null 2>&1 && ok "結論を入れた見出しの戦略を通す" || ng "結論を入れた見出しの戦略"
 if verify_strategy "$TMP/out/strategy/sample.md" "$TMP/out/critique/needs-revision.md" --config "$STRATEGY_ROOT/playbook.yml" --north-star "$north_path" --north-star-sha256 "$north_hash" | jq -e '.verdict=="要修正" and (.product_north_star_path|endswith("sample.md"))' >/dev/null; then
   ok "構造検査は合法な要修正判定を改変せず返す"
 else
