@@ -13,7 +13,7 @@ Product North Starを定義し、そこからRumelt型Product Strategyを立案�
 
 ## 公開入口を選ぶ
 
-次の入口から依頼します。各入口は `SKILL.md`（目的・入力・判断基準・手順・停止条件・出力）、隣接 `playbook.yml`（同じagentが辿る工程順と外部依存）、`references/`（判断規律）、`scripts/`（決定論的な検査）だけで完結し、内部skillを持ちません。
+次の入口から依頼します。各入口は `SKILL.md` と、必要なら `references/` だけで完結し、内部skillを持ちません。
 
 | 今の状況 | 公開入口 |
 |---|---|
@@ -110,11 +110,11 @@ marketplaceの取得と、インストール済みパッケージの更新は分
 - `grill@grill`
 - `write-doc@write-doc`
 
-別repositoryへの依存は各入口の `playbook.yml` の `requires` に `{plugin, marketplace}` で宣言し、`playbook:` の工程として呼ぶ。相手の内部機能名へ依存せず、versionは固定しない。呼び出しは相手の `CONTRACT.md` が定める入力objectと返却objectだけを使う。
+各入口は、利用者に問うときに `grill` を、資料を保存するときに `write-doc` を呼ぶ。相手の内部の作りには依存しない。
 
 ## 設定
 
-入口は設定fileを持たない。保存先は公開入力 `document_destination`（新規は `output_directory` + `name`、更新は `update_target`）で受け取り、既定の置き場を補わない。本文はagentがインメモリで保持し、検査scriptへは標準入力で渡す。作業directory、検査用file、後片付け工程は持たない。
+入口は設定fileを持たない。保存先は依頼で受け取り、既定の置き場を補わない。
 
 ## 検証
 
@@ -127,11 +127,3 @@ bash scripts/validate.sh
 保守用tool（doctor / lint-consumer-contract / evaluate-skills / release / test-hardening / validate-plugin-repository）の参照元は兄弟checkoutの `../harness-tools/` であり、このrepositoryは複製を持たない。`scripts/validate.sh` は `../harness-tools/tools/` の実在を確認してから呼び、無ければ止まる。CIの `validate.yml` も `harness-tools` を兄弟checkoutして `harness-tools/ci/validate.sh` を実行する。呼び方は `../harness-tools/README.md` にある。
 
 [意味評価fixture](evals/scenarios.json)を `harness-tools` の評価runner（`scripts/run-evals.sh`）へ渡した記録は、criterionの真偽を機械の合否にせず、人またはエージェントが根拠付きで評価する。
-
-## 配置の変更（2026-09-16）
-
-- marketplaceの `source` を `./plugins` から `./plugins/product-planning` へ、公開入口を `plugins/playbooks/product/{product-north-star-planning, product-strategy-planning}` から `plugins/product-planning/skills/{set-product-north-star, set-product-strategy}` へ移した。隣接 `playbook.yml` の `name` は入口名と同じになった。配置変更はinstall identityを変えるため、release時にmajor bumpが要る。
-- 内部skill `product-context` / `product-north-star` / `product-strategy` / `strategy-critique` は、それを使う公開入口が1つずつだったため入口へ統合した。判断規律の参照文書は入口の `references/` へ移した。
-- 設定解決runtime（`prepare.sh` / `resolve.sh` / `run-config.py` / `state.py`）、`config/defaults.yml`、入口ごとのnested manifest、`artifact.py` による中間保存を撤去した。`verify.py` / `validate-north-star.py` は公開 `playbook.yml` の `contract` を直接読む。
-- 検査のためだけの一時file配管（run専用directory、候補file、`scripts/cleanup.py`、`contract.cleanup`）を撤去した。`verify.py` は本文を標準入力で受ける。`grill` へ渡す問いは成果を左右する順に厳選し、対話の作法と問う数の上限は `grill` の公開契約に従う。上限で問われなかった論点は返った `open_questions` の推奨を仮置きした未決として資料へ載せる。各入口は任意入力 `references`（追加で従う資料の絶対path配列）を持つ。
-- 外部依存の実行時解決（`dependencies.yml` による束縛、`--explain`）は撤去した。`requires` は外部package（`grill` / `write-doc`）だけを列挙する。
