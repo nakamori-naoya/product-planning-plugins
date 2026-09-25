@@ -4,7 +4,7 @@
 # 戦略本文と反証はagentがインメモリで保持し、検査scriptへは標準入力で渡す。作業directoryや検査用fileは作らない。
 version: 2
 name: set-product-strategy
-description: 検査済みProduct North Starと現在地から対話的にRumelt型Product Strategyを作り、独立反証して資料に保存する
+description: 検査済みProduct North Starと現在地から対話的にRumelt型Product Strategyを作り、反証して資料に保存する
 inputs: [product_north_star_path, user_input, references, document_destination]
 
 requires:
