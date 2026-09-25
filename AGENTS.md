@@ -1,9 +1,7 @@
 > 共通の規約は /Users/naoya-nakamoriq/Documents/Github/harness-pluginsv2/AGENTS.md にある。ここには、この repository だけの規則を置く。
 
-# AGENTS.md
+# product-planning
 
-このrepositoryはProduct North StarとProduct Strategyの立案・反証を扱うmarketplaceである。marketplaceへ公開するインストール対象はpackage `product-planning`（`./plugins/product-planning`）だけにし、公開入口は `skills/set-product-north-star` と `skills/set-product-strategy` の2つとする。内部skillは置かない。各入口は自身の `SKILL.md`、隣接 `playbook.yml`、`references/`、`scripts/` だけで完結し、工程の順は `playbook.yml` の宣言順で決まり、同じagentがその順に辿る。
+この repository は、Product North Star と Product Strategy の立案と反証を扱う。インストール対象は package `product-planning`（`./plugins/product-planning`）だけで、公開入口は `skills/set-product-north-star` と `skills/set-product-strategy` の二つである。内部 skill は置かず、各入口は自分の `SKILL.md` と `references/` だけで完結する。
 
-`write-doc`と`grill`は同梱しない。
-
-設定fileを置かず、保存先は公開入力 `document_destination` で受け取る。agentが作った本文は検査scriptへ標準入力で渡し、作業directory・検査用file・後片付け工程を置かない。
+利用者に問うときは `grill` を、資料を保存するときは `write-doc` を呼び、どちらも同梱しない。設定ファイルは置かず、保存先は依頼で受け取る。
