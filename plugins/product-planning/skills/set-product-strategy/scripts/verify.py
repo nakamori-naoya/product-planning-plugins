@@ -6,6 +6,8 @@
 
 入力は標準入力のJSON object（keyは strategy と critique のちょうど2つ。値は空でない文字列）、
 引数の playbook.yml（contract.strategy_sections / critique_verdicts）、Product North Star資料のpathとsha256だけである。
+節は、write-doc の公開契約が strategy について宣言した目印で見つける。H2 見出しの最初の半角「:」より前が節の名前で、
+後ろには結論を書いてよい。反証の判定の節も同じ規則で名前を読む。
 検査用fileは受け取らない。合格時は標準出力へ {"verdict": ..., "product_north_star_path": ...} を返す。
 verdict は反証の「## 判定」節の値をそのまま返し、合格・要修正の意味判定は変えない。
 
@@ -72,7 +74,8 @@ def sections(body: str) -> tuple[list[str], dict[str, str]]:
     for line in body.splitlines():
         match = re.match(r"^##[ ]+(.+?)[ ]*$", line)
         if match:
-            current = match.group(1)
+            # 節の名前は見出しの最初の半角「:」より前。後ろは結論として読まない。
+            current = match.group(1).split(":", 1)[0].strip()
             if current in content:
                 raise ValueError(f"節が重複している: {current}")
             headings.append(current)

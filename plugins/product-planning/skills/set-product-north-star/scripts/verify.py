@@ -4,6 +4,8 @@
   verify.py --config <同じdirectoryのplaybook.yml>  < <North Star本文（Markdown）>
 
 入力は標準入力の本文と、引数の playbook.yml（contract.north_star_sections / forbidden_sections）だけである。
+節は、write-doc の公開契約が north-star について宣言した目印で見つける。H2 見出しの最初の半角「:」より前が節の名前で、
+後ろには結論を書いてよい。見出し全体の文言は比べない。
 検査用fileは受け取らない。合格時は標準出力へ {"verified": true, "sections": [...]} を返す。
 
 exit 0 = 契約を満たす / 2 = 標準入力が空、契約が読めない、必須節の欠落・順序不正・空欄、戦略の節の混入（診断は標準エラー）。
@@ -53,7 +55,8 @@ def sections(body: str) -> tuple[list[str], dict[str, str]]:
     for line in body.splitlines():
         match = re.match(r"^##[ ]+(.+?)[ ]*$", line)
         if match:
-            current = match.group(1)
+            # 節の名前は見出しの最初の半角「:」より前。後ろは結論として読まない。
+            current = match.group(1).split(":", 1)[0].strip()
             if current in content:
                 raise ValueError(f"節が重複している: {current}")
             headings.append(current)

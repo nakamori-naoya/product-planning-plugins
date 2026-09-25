@@ -33,7 +33,8 @@ def sections(body: str) -> tuple[list[str], dict[str, str]]:
     for line in body.splitlines():
         match = re.match(r"^##[ ]+(.+?)[ ]*$", line)
         if match:
-            current = match.group(1)
+            # 節の名前は見出しの最初の半角「:」より前。後ろは結論として読まない。
+            current = match.group(1).split(":", 1)[0].strip()
             if current in content:
                 raise ValueError(f"節が重複している: {current}")
             headings.append(current)
