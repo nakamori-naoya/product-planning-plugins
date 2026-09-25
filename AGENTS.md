@@ -2,7 +2,7 @@
 
 # AGENTS.md
 
-このrepositoryはProduct North StarとProduct Strategyの立案・反証を扱うmarketplaceである。marketplaceへ公開するインストール対象はpackage `product-planning`（`./plugins/product-planning`）だけにし、公開入口は `skills/set-product-north-star` と `skills/set-product-strategy` の2つとする。内部skillは置かない。各入口は自身の `SKILL.md`、隣接 `playbook.yml`、`references/`、`scripts/` だけで完結し、工程順は `playbook.yml` の宣言順が正式な定義であり、同じagentが辿る。
+このrepositoryはProduct North StarとProduct Strategyの立案・反証を扱うmarketplaceである。marketplaceへ公開するインストール対象はpackage `product-planning`（`./plugins/product-planning`）だけにし、公開入口は `skills/set-product-north-star` と `skills/set-product-strategy` の2つとする。内部skillは置かない。各入口は自身の `SKILL.md`、隣接 `playbook.yml`、`references/`、`scripts/` だけで完結し、工程の順は `playbook.yml` の宣言順で決まり、同じagentがその順に辿る。
 
 `write-doc`と`grill`は同梱せず、別repositoryにはそのrepositoryが公開するpackageだけで依存する。**外部packageは `playbook.yml` の `requires` に `{plugin, marketplace}` で宣言し、`playbook:` の工程でだけ呼ぶ。`skill:`や`script:`で指さない。** 呼び出しは相手の公開契約が定める入力と返却値だけを使い、内部skill名・工程id・references・config・保存モード名・非公開path・scriptの引数・終了コードを前提にしない。`requires` に自marketplaceの要素を置かない。
 
