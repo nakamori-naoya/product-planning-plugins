@@ -1,6 +1,6 @@
 {
   "name": "product-planning",
-  "version": "5.0.0",
+  "version": "5.1.0",
   "description": "Product North StarとProduct Strategyの立案・反証を行う自己完結skill 2つを提供する",
   "author": {
     "name": "NaoyaNakamori"
