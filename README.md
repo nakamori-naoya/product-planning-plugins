@@ -1,6 +1,6 @@
 # Product Planning
 
-Product North Starを定義し、そこからRumelt型Product Strategyを立案・独立反証するClaude Code/Codex両対応marketplaceである。公開するインストール対象はpackage `product-planning`（`./plugins/product-planning`）1件で、公開入口は自己完結skill `set-product-north-star` と `set-product-strategy` の2つである。電子チケット題材のHTML作例を`docs/exercises/product-planning`に含む。
+Product North Starを定義し、そこからRumelt型Product Strategyを立案・反証するClaude Code/Codex両対応marketplaceである。公開するインストール対象はpackage `product-planning`（`./plugins/product-planning`）1件で、公開入口は自己完結skill `set-product-north-star` と `set-product-strategy` の2つである。電子チケット題材のHTML作例を`docs/exercises/product-planning`に含む。
 
 ## こんなときに使う
 
@@ -9,7 +9,7 @@ Product North Starを定義し、そこからRumelt型Product Strategyを立案�
 - チームごとにプロダクトの目的や優先順位が違う
 - 目標はあるが、現在地を裏付ける事実と仮説が混ざっている
 - North Starはあるが、どの課題へ集中するか決まっていない
-- 戦略が願望や施策一覧になっていないか独立して反証したい
+- 戦略が願望や施策一覧になっていないか反証したい
 
 ## 公開入口を選ぶ
 
