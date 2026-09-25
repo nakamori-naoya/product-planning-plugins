@@ -19,7 +19,7 @@ ENTRIES=(set-product-north-star set-product-strategy)
 
 # ── 配置と identity ──────────────────────────────────────────────────────
 for market in .claude-plugin/marketplace.json .agents/plugins/marketplace.json; do
-  if jq -e '.name=="product-planning" and (.plugins|length)==1 and .plugins[0].name=="product-planning" and .plugins[0].version=="5.0.0"
+  if jq -e '.name=="product-planning" and (.plugins|length)==1 and .plugins[0].name=="product-planning" and .plugins[0].version=="5.1.0"
             and ((.plugins[0].source=="./plugins/product-planning") or (.plugins[0].source=={"source":"local","path":"./plugins/product-planning"}))' "$ROOT/$market" >/dev/null; then
     pass "$market identityとsource"
   else

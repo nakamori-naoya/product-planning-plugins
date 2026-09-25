@@ -1,0 +1,28 @@
+{
+  "schema": 1,
+  "plugin": "product-planning",
+  "version": "5.1.0",
+  "created_at": "2026-09-25T07:39:34.266608+00:00",
+  "notes": "north-star と strategy の検査が、見出し全体ではなく最初の半角「:」より前の名前で節を見つけるようにし、見出しの「:」の後ろに節の結論を書けるようにした（write-doc の公開契約の目印に合わせた）。反証は同じ agent が視点を切り替えて行う批評 pass と一つに書き、product-context の区別を見出しと文章にした。工程の順は playbook.yml の宣言順で決まると書いた。",
+  "breaking": "なし（従来の見出しの形はそのまま通る。見出しに結論を添える形が加わった）",
+  "migration": "marketplace を update し plugin を再 install する。write-doc 10.0.0 と併せて導入する。",
+  "checks": {
+    "codex": {
+      "status": "manifest-and-contract-tests-passed",
+      "native-client-installation": "not-executed（merge 後に install-plugins.sh で導入）",
+      "evidence": "bash scripts/validate.sh: exit 0 (Validation: passed)"
+    },
+    "claude": {
+      "status": "manifest-and-contract-tests-passed",
+      "native-client-installation": "not-executed（merge 後に install-plugins.sh で導入）",
+      "evidence": "bash scripts/validate.sh: exit 0 (Validation: passed)"
+    },
+    "root-validation": "root scripts/validate.sh product-planning-plugins: Root validation: passed"
+  },
+  "files": [
+    ".agents/plugins/marketplace.json",
+    "plugins/product-planning/.codex-plugin/plugin.json",
+    ".claude-plugin/marketplace.json",
+    "plugins/product-planning/.claude-plugin/plugin.json"
+  ]
+}
