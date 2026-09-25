@@ -14,7 +14,7 @@ description: 完成済みのProduct North Starを入力として検査し、現�
 - `references`: 追加で従う資料の絶対path配列。任意。手順の最初に読む。プロジェクト固有の規約や文脈は、対象repositoryのAGENTS.md / CLAUDE.mdとこの入力で渡される。
 - `document_destination`: 新規作成なら `{output_directory: <既存の書き込み可能な絶対directory>, name: <.md名>}`、更新なら `{update_target: <既存Markdownの絶対path>}` のどちらか一方だけを持つobject。片側の欠落、両方式の混在、未知キー、未確定の保存先は受け取らない。
 
-同じagentが、同じdirectoryの [`playbook.yml`](playbook.yml) を読み、その `steps` の宣言順を実行順の正式な定義にする。`agent_work: invoking_agent` の工程はこのagentが同じ文脈で意味判断し、`script:` は決定論的な構造検査、`playbook:` は依存先の公開playbookの呼び出しである。戦略本文と反証はインメモリで保持し、検査scriptへは標準入力で渡す。工程間で値を運ぶためのfileや作業directoryは作らない。
+同じagentが、同じdirectoryの [`playbook.yml`](playbook.yml) を読み、その `steps` の宣言順に実行する。`agent_work: invoking_agent` の工程はこのagentが同じ文脈で意味判断し、`script:` は決定論的な構造検査、`playbook:` は依存先の公開playbookの呼び出しである。戦略本文と反証はインメモリで保持し、検査scriptへは標準入力で渡す。工程間で値を運ぶためのfileや作業directoryは作らない。
 
 ## 判断基準
 
