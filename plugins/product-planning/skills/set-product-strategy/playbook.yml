@@ -1,6 +1,6 @@
 # set-product-strategy — 既存の北極星を保ち、現在地から戦略を立案して反証する。
 # 外部packageへは公開playbookでだけ依存する。grillとwrite-docの内部・工程id・script引数には触れない。
-# 工程順の正式な定義はこのYAMLであり、agent_work工程はこのSKILLを実行する同じagentが同じ文脈で担う。
+# 工程の順はこのYAMLの steps の宣言順で決まり、agent_work工程はこのSKILLを実行する同じagentが同じ文脈で担う。
 # 戦略本文と反証はagentがインメモリで保持し、検査scriptへは標準入力で渡す。作業directoryや検査用fileは作らない。
 version: 2
 name: set-product-strategy
