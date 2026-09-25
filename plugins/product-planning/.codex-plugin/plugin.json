@@ -17,8 +17,7 @@
   },
   "metadata": {
     "harness": {
-      "marketplace": "product-planning",
-      "contractVersion": 1
+      "marketplace": "product-planning"
     }
   }
 }
