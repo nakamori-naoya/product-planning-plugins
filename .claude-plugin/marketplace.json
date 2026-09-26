@@ -3,12 +3,12 @@
   "owner": {
     "name": "NaoyaNakamori"
   },
-  "description": "Product North StarとProduct Strategyを一つのPlaybookパッケージとして配布するmarketplace",
+  "description": "見えない課題の発見、Product North Star、Product Strategyを一つのパッケージとして配布するmarketplace",
   "plugins": [
     {
       "name": "product-planning",
       "source": "./plugins/product-planning",
-      "description": "North StarとStrategyの立案・反証Playbookを一括提供する",
+      "description": "見えない課題の発見、North StarとStrategyの立案・反証を一括提供する",
       "version": "6.0.0"
     }
   ]
