@@ -9,7 +9,7 @@
       "name": "product-planning",
       "source": "./plugins/product-planning",
       "description": "見えない課題の発見、North StarとStrategyの立案・反証を一括提供する",
-      "version": "6.0.0"
+      "version": "6.1.0"
     }
   ]
 }
