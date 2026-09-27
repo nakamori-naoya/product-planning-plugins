@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="520" viewBox="0 0 1200 520" role="img" aria-labelledby="title desc">
+  <title id="title">基本方針で選ぶことと選ばないこと</title>
+  <desc id="desc">変更の行き先を代表の個人の LINE から一か所へ移すことに集中し、アプリ作り、代表の処理を速くする工夫、置く役の移し替えはこの4週間は選ばないことを示す図。</desc>
+  <style>
+    text { font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif; fill: #172033; }
+    .heading { font-size: 30px; font-weight: 700; }
+    .panel-title { font-size: 27px; font-weight: 700; }
+    .body { font-size: 23px; }
+    .note { font-size: 21px; fill: #435066; }
+    .small { font-size: 19px; }
+    .anchor-text { font-size: 22px; font-weight: 700; fill: #ffffff; }
+  </style>
+
+  <rect width="1200" height="520" rx="28" fill="#f7f8fa"/>
+  <text x="600" y="62" text-anchor="middle" class="heading">この4週間の選択の境界</text>
+
+  <rect x="78" y="112" width="470" height="270" rx="22" fill="#e8f5ee" stroke="#247a4b" stroke-width="3"/>
+  <text x="313" y="163" text-anchor="middle" class="panel-title" fill="#155d39">選ぶこと</text>
+  <text x="313" y="218" text-anchor="middle" class="body">変更の行き先を一か所へ移す</text>
+  <text x="313" y="263" text-anchor="middle" class="note">今の LINE グループの中で、作らずに</text>
+  <text x="313" y="320" text-anchor="middle" class="small" fill="#247a4b">代表の時間はここへ寄せる</text>
+
+  <rect x="652" y="112" width="470" height="270" rx="22" fill="#f1f2f4" stroke="#697386" stroke-width="3"/>
+  <text x="887" y="163" text-anchor="middle" class="panel-title" fill="#4c5565">いまは選ばないこと</text>
+  <text x="887" y="213" text-anchor="middle" class="body">アプリ作り</text>
+  <text x="887" y="253" text-anchor="middle" class="body">代表の処理を速くする工夫</text>
+  <text x="887" y="293" text-anchor="middle" class="body">置く役の移し替え</text>
+  <text x="887" y="340" text-anchor="middle" class="small" fill="#697386">行き先が移るかを確かめる前には選ばない</text>
+
+  <path d="M548 247H652" stroke="#9aa3b2" stroke-width="3" stroke-dasharray="8 8"/>
+
+  <rect x="190" y="420" width="820" height="62" rx="31" fill="#172033"/>
+  <text x="600" y="460" text-anchor="middle" class="anchor-text">確定版を置く → 変更と穴を一か所で回す → 記録と理由を診断へ戻す</text>
+</svg>

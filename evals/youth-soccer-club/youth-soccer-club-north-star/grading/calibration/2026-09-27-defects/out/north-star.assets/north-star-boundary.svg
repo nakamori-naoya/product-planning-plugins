@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1300" height="680" viewBox="0 0 1300 680" role="img" aria-labelledby="title desc">
+  <title id="title">クラブの連絡のプロダクトが担う範囲と担わない範囲</title>
+  <desc id="desc">代表が一人で受けて配り直さずに済むという価値を中心に、プロダクトが担う予定の確定版と変更の置き場所、保護者やクラブが担う配車の引き受けと運営の決まり、担う範囲の内側で採らない方針、迷ったときの判断原則を区別して示す図。</desc>
+  <style>
+    text { font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif; fill: #172033; }
+    .heading { font-size: 30px; font-weight: 700; }
+    .panel-title { font-size: 27px; font-weight: 700; }
+    .band-title { font-size: 21px; font-weight: 700; }
+    .body { font-size: 21px; }
+    .small { font-size: 19px; fill: #53627a; }
+  </style>
+
+  <rect width="1300" height="680" rx="28" fill="#f7f8fa"/>
+  <text x="650" y="62" text-anchor="middle" class="heading">連絡が代表一人に集まらないよう、役割の境界を決める</text>
+
+  <rect x="90" y="130" width="480" height="230" rx="24" fill="#e8f5ee" stroke="#247a4b" stroke-width="3"/>
+  <text x="330" y="185" text-anchor="middle" class="panel-title" fill="#247a4b">プロダクトが担う</text>
+  <text x="330" y="240" text-anchor="middle" class="body">予定の確定版を一つに保つ</text>
+  <text x="330" y="275" text-anchor="middle" class="body">変更と空いた穴を全員に見せる</text>
+  <text x="330" y="318" text-anchor="middle" class="small">本人が直接出せる置き場所</text>
+
+  <rect x="730" y="130" width="480" height="230" rx="24" fill="#f1f2f4" stroke="#697386" stroke-width="3"/>
+  <text x="970" y="185" text-anchor="middle" class="panel-title" fill="#697386">プロダクトが担わない</text>
+  <text x="970" y="240" text-anchor="middle" class="body">車を出すか、誰が引き受けるか</text>
+  <text x="970" y="275" text-anchor="middle" class="body">練習や試合をどうするかの決定</text>
+  <text x="970" y="318" text-anchor="middle" class="small">保護者と代表・コーチが決める</text>
+
+  <path d="M650 108V385" stroke="#9aa3b2" stroke-width="3" stroke-dasharray="9 9"/>
+
+  <rect x="90" y="392" width="1120" height="96" rx="22" fill="#f5f3ff" stroke="#6d28d9" stroke-width="3" stroke-dasharray="10 6"/>
+  <text x="130" y="430" class="band-title">担う範囲の内側で、それでも採らない方針（やらないこと）</text>
+  <text x="130" y="464" class="small">出欠が集まること自体を成功とみなさない／返事の催促を価値にしない／出来事の無い困りごとへ広げない</text>
+
+  <rect x="90" y="506" width="1120" height="82" rx="22" fill="#ffffff" stroke="#6d28d9" stroke-width="3"/>
+  <text x="130" y="542" class="band-title">境界で迷ったときの判断原則</text>
+  <text x="130" y="572" class="small">代表を通らない側を選ぶ／保護者に新しい道具を求めない／年会費の範囲で続けられる側を選ぶ</text>
+
+  <rect x="300" y="606" width="700" height="54" rx="27" fill="#172033"/>
+  <text x="650" y="642" text-anchor="middle" class="band-title" fill="#ffffff">中心に置く価値：代表が一人で受けて配り直さずに済む</text>
+</svg>
